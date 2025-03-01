@@ -1,0 +1,19 @@
+{
+  "name": "@rotomeca/utils",
+  "version": "1.0.0",
+  "description": "Various helpers",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Rotomeca/node-utils.git"
+  },
+  "keywords": [
+    "utils"
+  ],
+  "author": "Rotomeca",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Rotomeca/node-utils/issues"
+  },
+  "homepage": "https://github.com/Rotomeca/node-utils#readme"
+}
