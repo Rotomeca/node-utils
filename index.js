@@ -3,7 +3,7 @@ const Random = require("./lib/random");
 
 //#region MiscFunctions
 function isNullOrUndefined(item) {
-    return item !== null && item !== undefined;
+    return item !== null || item !== undefined;
 }
 //#endregion
 
