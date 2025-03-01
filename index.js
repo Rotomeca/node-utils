@@ -8,4 +8,4 @@ function isNullOrUndefined(item) {
 //#endregion
 
 
-module.export = {EMPTY_STRING, Random, isNullOrUndefined};
+module.exports = {EMPTY_STRING, Random, isNullOrUndefined};
