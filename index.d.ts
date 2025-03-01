@@ -1,9 +1,6 @@
+import { EMPTY_STRING } from './lib/constants';
 import Random from './lib/random';
+export = {isNullOrUndefined, Random, EMPTY_STRING};
 declare module "@rotomeca/utils";
-declare namespace RotomecaUtils {
-    const EMPTY_STRING: string;
-    const Random: Random;
-    function isNullOrUndefined(item: any): boolean;
-}
+function isNullOrUndefined(item: any): boolean;
 
-export = RotomecaUtils;
