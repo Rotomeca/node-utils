@@ -1,21 +1,25 @@
 {
   "name": "@rotomeca/utils",
-  "version": "3.0.0",
+  "version": "4.0.2",
   "description": "Various helpers",
   "main": "index.js",
   "module": "index.mjs",
+  "types": "index.d.ts",
   "exports": {
     ".": {
       "require": "./index.js",
-      "import": "./index.mjs"
+      "import": "./index.mjs",
+      "types": "./index.d.ts"
     },
     "./lib/constants": {
       "require": "./lib/constants.js",
-      "import": "./lib/constants.mjs"
+      "import": "./lib/constants.mjs",
+      "types": "./lib/constants.d.ts"
     },
     "./lib/random": {
       "require": "./lib/random.js",
-      "import": "./lib/random.mjs"
+      "import": "./lib/random.mjs",
+      "types": "./lib/random.d.ts"
     }
   },
   "repository": {
