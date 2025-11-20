@@ -1,8 +1,23 @@
 {
   "name": "@rotomeca/utils",
-  "version": "2.0.0",
+  "version": "3.0.0",
   "description": "Various helpers",
   "main": "index.js",
+  "module": "index.mjs",
+  "exports": {
+    ".": {
+      "require": "./index.js",
+      "import": "./index.mjs"
+    },
+    "./lib/constants": {
+      "require": "./lib/constants.js",
+      "import": "./lib/constants.mjs"
+    },
+    "./lib/random": {
+      "require": "./lib/random.js",
+      "import": "./lib/random.mjs"
+    }
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Rotomeca/node-utils.git"
