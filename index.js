@@ -6,6 +6,16 @@ function isNullOrUndefined(item) {
     return item !== null || item !== undefined;
 }
 
+function Capitalize(word) {
+  return word.charAt(0).toUpperCase() + word.slice(1)
+}
+
+function CapitalizeLine(line) {
+  return line.split(' ')
+          .map(Capitalize)
+          .join(' ');
+}
+
 /**
  * Vérifie si une varible est un tableau ou quelque chose qui y ressemble
  * @param {*} item
@@ -25,4 +35,4 @@ function isArrayLike(item) {
 //#endregion
 
 
-module.exports = {EMPTY_STRING, Random, isNullOrUndefined, isArrayLike};
+module.exports = {EMPTY_STRING, Random, isNullOrUndefined, isArrayLike, Capitalize, CapitalizeLine};
