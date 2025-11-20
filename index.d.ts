@@ -8,5 +8,7 @@ export declare function isNullOrUndefined(item: any): boolean;
  * @returns {bool} true si l'élément est un tableau ou quelque chose qui y ressemble
  */
 export declare function isArrayLike(item: any): boolean;
+export declare function Capitalize(word: string): string;
+export declare function CapitalizeLine(line: string): string;
 export { Random, EMPTY_STRING };
 

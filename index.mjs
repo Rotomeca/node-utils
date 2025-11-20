@@ -22,6 +22,16 @@ export function isArrayLike(item) {
       item.length - 1 in item
     );
   }
+
+export function Capitalize(word) {
+  return word.charAt(0).toUpperCase() + word.slice(1)
+}
+
+export function CapitalizeLine(line) {
+  return line.split(' ')
+          .map(Capitalize)
+          .join(' ');
+}
 //#endregion
 
 export {EMPTY_STRING, Random};
