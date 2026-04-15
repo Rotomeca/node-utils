@@ -2,13 +2,14 @@ import { EMPTY_STRING } from "./constants";
 import { int, uint } from "./types";
 
 /**
- * Donne des éléments pour générer de l'aléatoire
+ * Classe utilitaire pour générer des nombres et des chaînes aléatoires.
  */
 export default class Random {
   /**
-   * Génère une nombre entier entre 2 limites.
-   * @param min Valeur minimum
-   * @param max Valeur maximum
+   * Génère un entier aléatoire entre deux bornes.
+   * @param min Valeur minimale incluse
+   * @param max Valeur maximale exclue
+   * @returns Un entier aléatoire
    */
   static intRange(min: int, max: int): int {
     min = Math.ceil(min) as unknown as int;
@@ -17,26 +18,28 @@ export default class Random {
   }
 
   /**
-   * Génère une nombre entre 2 limites
-   * @param min Valeur minimum
-   * @param max Valeur maximum
+   * Génère un nombre à virgule flottante aléatoire entre deux bornes.
+   * @param min Valeur minimale
+   * @param max Valeur maximale
+   * @returns Un nombre aléatoire
    */
   static range(min: number, max: number): number {
     return Math.random() * (max - min) + min;
   }
 
   /**
-   * @deprecated utilisez {@link Random.randomString} plutôt
-   * @param size 
-   * @returns 
+   * @deprecated utilisez {@link Random.randomString} plutôt.
+   * @param size Taille de la chaîne aléatoire
+   * @returns Une chaîne aléatoire
    */
   static random_string(size: uint): string {
     return this.randomString(size);
   }
 
   /**
-   * Génère une chaîne aléatoire d'une taille définie
-   * @param size
+   * Génère une chaîne de caractères aléatoire de la longueur indiquée.
+   * @param size Taille de la chaîne
+   * @returns Une chaîne aléatoire composée de lettres minuscules
    */
   static randomString(size: uint): string {
     const ALPHA = 'abcdefghijklmnopqrstuvwxyz';

@@ -6,13 +6,19 @@ export * from "./lib/types";
 export * from "./lib/random";
 
 //#region MiscFunctions
+/**
+ * Vérifie si une valeur est `null` ou `undefined`.
+ * @param item Valeur à tester
+ * @returns `true` si l'élément est `null` ou `undefined`, sinon `false`
+ */
 export function isNullOrUndefined<T>(item: MayBe<T>) {
-    return item !== null || item !== undefined;
+    return item === null || item === undefined;
 }
 
 /**
- * Vérifie si une varible est un tableau ou quelque chose qui y ressemble
- * @param item
+ * Vérifie si une variable est un tableau ou un objet qui se comporte comme un tableau.
+ * @param item Valeur à tester
+ * @returns `true` si l'élément ressemble à un tableau, sinon `false`
  */
 export function isArrayLike<T>(item: T) {
     return (
@@ -27,27 +33,37 @@ export function isArrayLike<T>(item: T) {
   }
 
   /**
-   * @deprecated Utilisez {@link capitalize} plutôt
-   * @param word 
-   * @returns 
+   * @deprecated Utilisez {@link capitalize} à la place.
+   * @param word Mot à transformer
+   * @returns Le mot avec la première lettre en majuscule
    */
 export function Capitalize(word: string): string {
   return capitalize(word);
 }
 
+/**
+ * Met la première lettre d'un mot en majuscule.
+ * @param word Mot à transformer
+ * @returns Le mot transformé avec une première lettre en majuscule
+ */
 export function capitalize(word: string): string {
   return word.charAt(0).toUpperCase() + word.slice(1)
 }
 
 /**
- * @deprecated Utilisez {@link capitalizeLine} plutôt
- * @param line 
- * @returns 
+ * @deprecated Utilisez {@link capitalizeLine} à la place.
+ * @param line Texte à transformer
+ * @returns Le texte transformé avec chaque mot capitalisé
  */
 export function CapitalizeLine(line: string): string {
   return capitalizeLine(line);
 }
 
+/**
+ * Met la première lettre de chaque mot d'une ligne en majuscule.
+ * @param line Ligne de texte à transformer
+ * @returns Ligne transformée avec chaque mot capitalisé
+ */
 export function capitalizeLine(line: string): string {
   return line.split(SPACE)
           .map(capitalize)
