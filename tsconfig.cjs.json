@@ -1,0 +1,8 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "module": "CommonJS",         // Génère des require()
+    "outDir": "./dist/cjs",       // Sortie séparée
+    "declaration": false          // Pas besoin de dupliquer les types
+  }
+}

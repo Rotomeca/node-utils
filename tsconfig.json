@@ -1,0 +1,8 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "module": "ESNext",           // Génère des imports/exports modernes
+    "moduleResolution": "node",
+    "outDir": "./dist/esm"        // Sortie séparée
+  }
+}
