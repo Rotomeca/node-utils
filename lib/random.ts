@@ -4,7 +4,7 @@ import { int, uint } from "./types";
 /**
  * Classe utilitaire pour générer des nombres et des chaînes aléatoires.
  */
-export default class Random {
+export class Random {
   /**
    * Génère un entier aléatoire entre deux bornes.
    * @param min Valeur minimale incluse

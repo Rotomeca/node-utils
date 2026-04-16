@@ -1,6 +1,6 @@
 {
   "name": "@rotomeca/utils",
-  "version": "5.0.2",
+  "version": "5.0.3",
   "description": "Various helpers",
   "type": "module", 
   "main": "./dist/cjs/index.js",
