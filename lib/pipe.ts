@@ -187,6 +187,13 @@ export function pipe<A, B, C, D, E, F, G, H, I, J>(value: A, fn1: (arg: A) => B,
  * @returns Résultat de la dixième fonction.
  */
 export function pipe<A, B, C, D, E, F, G, H, I, J, K>(value: A, fn1: (arg: A) => B, fn2: (arg: B) => C, fn3: (arg: C) => D, fn4: (arg: D) => E, fn5: (arg: E) => F, fn6: (arg: F) => G, fn7: (arg: G) => H, fn8: (arg: H) => I, fn9: (arg: I) => J, fn10: (arg: J) => K): K;
+/**
+ * Implémentation générique de `pipe` qui enchaîne un nombre arbitraire de fonctions.
+ *
+ * @param value Valeur initiale.
+ * @param fns Liste des fonctions à appliquer successivement.
+ * @returns Valeur résultante après application de toutes les fonctions.
+ */
 export function pipe(value: any, ...fns: Array<(arg: any) => any>): any {
   return fns.reduce((acc, fn) => fn(acc), value);
 }

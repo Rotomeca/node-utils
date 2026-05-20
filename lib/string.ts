@@ -40,7 +40,21 @@ export function capitalizeLine(line: string): string {
           .join(SPACE);
 }
 
+/**
+ * Type brandé représentant une chaîne déjà transformée en slug.
+ */
 export type SlugifiedString = string & { readonly __brand: 'slug' };
+
+/**
+ * Transforme une chaîne de caractères en slug sécurisé pour une URL ou un identifiant.
+ *
+ * Cette fonction normalise les accents, supprime les caractères invalides,
+ * remplace les espaces et tirets consécutifs par un seul tiret, puis nettoie
+ * les tirets en début et fin de chaîne.
+ *
+ * @param str Chaîne à convertir.
+ * @returns Une chaîne au format slug.
+ */
 export function slugify(str: string): SlugifiedString {
     return str
         .normalize('NFD')                     // Décompose les accents (é → e + ◌́)
@@ -52,6 +66,9 @@ export function slugify(str: string): SlugifiedString {
         .replace(/^-+|-+$/g, EMPTY_STRING) as SlugifiedString; // Nettoie les éventuels tirets restants au début ou à la fin
 }
 
+/**
+ * Type brandé représentant une chaîne formatée en camelCase.
+ */
 export type CamelCaseString = string & { readonly __brand: 'camelCase' };
 /**
  * Convertit une chaîne de caractères en camelCase.
@@ -74,6 +91,9 @@ export function toCamelCase(str: string): CamelCaseString {
         .replace(/^[A-Z]/, (c) => c.toLowerCase()) as CamelCaseString;
 }
 
+/**
+ * Type brandé représentant une chaîne formatée en snake_case.
+ */
 export type SnakeCaseString = string & { readonly __brand: 'snakeCase' };
 /**
  * Convertit une chaîne de caractères en snake_case.
@@ -100,6 +120,9 @@ export function toSnakeCase(str: string): SnakeCaseString {
         .replace(/_+/g, '_') as SnakeCaseString;
 }
 
+/**
+ * Type brandé représentant une chaîne formatée en PascalCase.
+ */
 export type PascalCaseString = string & { readonly __brand: 'pascalCase' };
 /**
  * Convertit une chaîne de caractères en PascalCase (UpperCamelCase).
