@@ -117,7 +117,7 @@ export function uniqueBy<T>(arr: T[], fn: (item: T) => unknown): T[] {
  * groupBy(['a','ab','b'], s => s[0]) // -> { a: ['a','ab'], b: ['b'] }
  * ```
  */
-export function groupBy<T>(arr: T[], fn: (item: T) => string): Record<string, Optional<T[]>> {
+export function groupBy<T>(arr: T[], fn: (item: T) => string): Record<string, T[]> {
     const result: Record<string, T[]> = {};
 
     for (let i = 0, len = arr.length; i < len; ++i) {
@@ -168,12 +168,12 @@ export function last<T>(arr: T[]): MayBe<T> {
 export function sum(arr: number[]): number {
     if (arr.length === 0) return 0;
 
-    let sum = 0;
+    let total = 0;
     for (let i = 0, len = arr.length; i < len; ++i) {
-        sum += arr[i];
+        total += arr[i];
     }
 
-    return sum;
+    return total;
 } 
 
 /**

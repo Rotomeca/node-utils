@@ -32,8 +32,7 @@ export function clamp(value: number, min: number, max: number): number {
  * roundTo(1.005, 2)   // → 1.01
  */
 export function roundTo(n: float, decimals: uint): float {
-    const factor = 10 ** decimals;
-    return toFloat(Math.round(n * factor) / factor);
+    return toFloat(parseFloat(n.toFixed(decimals)));
 }
 
 /**
