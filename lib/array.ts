@@ -117,7 +117,7 @@ export function uniqueBy<T>(arr: T[], fn: (item: T) => unknown): T[] {
  * groupBy(['a','ab','b'], s => s[0]) // -> { a: ['a','ab'], b: ['b'] }
  * ```
  */
-export function groupBy<T>(arr: T[], fn: (item: T) => string): Record<string, Optional<T[]>> {
+export function groupBy<T>(arr: T[], fn: (item: T) => string): Record<string, T[]> {
     const result: Record<string, T[]> = {};
 
     for (let i = 0, len = arr.length; i < len; ++i) {
