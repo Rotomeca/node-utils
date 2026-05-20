@@ -1,5 +1,5 @@
 import { EMPTY_STRING } from "./constants";
-import { int, uint } from "./types";
+import { int, toInt, uint } from "./types";
 
 /**
  * Classe utilitaire pour générer des nombres et des chaînes aléatoires.
@@ -12,9 +12,9 @@ export class Random {
    * @returns Un entier aléatoire
    */
   static intRange(min: int, max: int): int {
-    min = Math.ceil(min) as unknown as int;
-    max = Math.floor(max) as unknown as int;
-    return ~~(Math.random() * (max - min) + min) as unknown as int;
+    min = toInt(Math.ceil(min));
+    max = toInt(Math.floor(max));
+    return toInt(~~(Math.random() * (max - min) + min));
   }
 
   /**
@@ -44,12 +44,12 @@ export class Random {
   static randomString(size: uint): string {
     const ALPHA = 'abcdefghijklmnopqrstuvwxyz';
 
-    let str = EMPTY_STRING;
+    const chars: string[] = [];
 
     for (let index = 0; index < size; ++index) {
-      str += ALPHA[this.intRange(0 as unknown as int, ALPHA.length as unknown as int)];
+      chars.push(ALPHA[this.intRange(toInt(0), toInt(ALPHA.length))]);
     }
 
-    return str;
+    return chars.join(EMPTY_STRING);
   }
 }
