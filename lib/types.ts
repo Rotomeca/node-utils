@@ -19,7 +19,9 @@ export type float = number & { readonly __brand: 'float' };
 export type ufloat = number & { readonly __brand: 'ufloat' };
 
 /**
- * Représente un sélecteur CSS valide contenant `#` ou `.`.
+ * Représente un sélecteur CSS contenant au moins un `#` ou `.`.
+ * 
+ * ⚠️ Validation partielle uniquement — ne garantit pas une syntaxe CSS complète.
  */
 export type Selector<T extends string = string> = T extends `${string}${'#' | '.'}${string}`
   ? T
