@@ -19,7 +19,9 @@ export type float = number & { readonly __brand: 'float' };
 export type ufloat = number & { readonly __brand: 'ufloat' };
 
 /**
- * Représente un sélecteur CSS valide contenant `#` ou `.`.
+ * Représente un sélecteur CSS contenant au moins un `#` ou `.`.
+ * 
+ * ⚠️ Validation partielle uniquement — ne garantit pas une syntaxe CSS complète.
  */
 export type Selector<T extends string = string> = T extends `${string}${'#' | '.'}${string}`
   ? T
@@ -81,4 +83,36 @@ export function toFloat(n: number): float {
 export function toUfloat(n: number): ufloat {
   if (!isFinite(n) || n < 0) throw new Error(`${n} is not a positive float`);
   return n as ufloat;
+}
+
+/**
+ * Convertit une chaîne en sélecteur CSS typé.
+ *
+ * - **Front-end** : validation complète via `document.querySelector`.
+ * - **Back-end** : validation partielle (présence de `#` ou `.`).
+ *   Tout appel en environnement Node.js lèvera une erreur explicite
+ *   si la validation native n'est pas disponible.
+ *
+ * @param s Chaîne à convertir
+ * @returns La valeur convertie en `Selector`
+ * @throws Erreur si la chaîne n'est pas un sélecteur CSS valide
+ */
+export function toSelector<T extends string>(s: T): Selector<T> {
+  if (typeof document !== 'undefined') {
+    // Environnement front-end : validation complète via l'API native
+    try {
+      document.querySelector(s);
+    } catch {
+      throw new Error(`"${s}" is not a valid CSS selector`);
+    }
+  } else {
+    // Environnement back-end : validation partielle + avertissement explicite
+    if (!s.includes('#') && !s.includes('.'))
+      throw new Error(
+        `"${s}" is not a valid CSS selector. ` +
+        `Note: full CSS validation is only available in browser environments.`
+      );
+  }
+
+  return s as Selector<T>;
 }

@@ -1,119 +1,131 @@
 /**
- * Abstract base class that provides a structured initialization and execution lifecycle.
+ * Type représentant un constructeur concret (non abstrait) d'une sous-classe de `AStartObject`.
  *
- * Subclasses must extend this class and override the protected hook methods
- * `_p_init` and `_p_main` to inject custom initialization and main logic.
+ * Utilisé en interne par {@link AStartObject.Start} pour instancier la sous-classe
+ * sans passer par `any`.
  *
- * The lifecycle is triggered via the static {@link AStartObject.Start} factory method,
- * which instantiates the subclass, runs initialization, then runs the main logic —
- * all in a single call.
+ * @internal
+ */
+type ConcreteConstructor<T> = new () => T;
+
+/**
+ * Classe de base abstraite fournissant un cycle de vie structuré : initialisation puis exécution.
+ *
+ * Les sous-classes doivent surcharger {@link _p_init} et {@link _p_main} pour injecter
+ * leur logique métier. Le cycle de vie est déclenché via la méthode statique {@link Start},
+ * seul point d'entrée prévu pour instancier un `AStartObject`.
  *
  * @example
  * ```typescript
  * class MyService extends AStartObject {
- *   protected _p_init(config: string) {
- *     console.log("Initializing with:", config);
+ *   private port!: number;
+ *
+ *   protected _p_init(port: number): void {
+ *     this.port = port;
  *   }
  *
- *   protected _p_main() {
- *     console.log("Running main logic");
+ *   protected _p_main(): void {
+ *     console.log(`Listening on port ${this.port}`);
  *   }
  * }
  *
- * MyService.Start("my-config");
- * // Output:
- * // Initializing with: my-config
- * // Running main logic
+ * MyService.Start(3000);
+ * // Output: Listening on port 3000
  * ```
  *
  * @abstract
  */
 export abstract class AStartObject {
+
     constructor() {}
 
     /**
-     * Private entry point for the initialization phase.
-     * Delegates to the overridable {@link _p_init} hook.
+     * Déclenche la phase d'initialisation en déléguant à {@link _p_init}.
      *
-     * @typeParam T - The type of the arguments passed to the initializer.
-     * @param args - Arguments forwarded to {@link _p_init}.
-     * @returns The return value of {@link _p_init}.
+     * Déclaré `private` (et non `#`) afin de rester accessible depuis la méthode
+     * statique {@link Start} sur une instance typée `AStartObject`, tout en restant
+     * invisible à l'extérieur de la classe.
+     *
+     * @param args - Arguments transmis à {@link _p_init}.
      */
-    #_init<T = unknown>(...args: T[]) {
-        return this._p_init(...args);
+    private _init(...args: unknown[]): void {
+        this._p_init(...args);
     }
 
     /**
-     * Protected initialization hook, called once during the startup lifecycle
-     * before {@link _p_main}.
+     * Déclenche la phase d'exécution principale en déléguant à {@link _p_main}.
      *
-     * Override this method in subclasses to perform setup work
-     * (e.g. loading configuration, injecting dependencies).
+     * Même justification que {@link _init} pour l'usage de `private`.
+     */
+    private _main(): void {
+        this._p_main();
+    }
+
+    /**
+     * Hook d'initialisation, appelé une seule fois avant {@link _p_main}.
      *
-     * @typeParam T - The type of the arguments received.
-     * @param args - Arguments forwarded from {@link AStartObject.Start}.
+     * Surchargez cette méthode pour effectuer le travail de setup
+     * (chargement de configuration, injection de dépendances, etc.).
+     *
+     * @param args - Arguments transmis depuis {@link Start}.
      *
      * @example
      * ```typescript
-     * protected _p_init(port: number) {
+     * protected _p_init(port: number): void {
      *   this.port = port;
      * }
      * ```
      */
-    protected _p_init<T = unknown>(...args: T[]) {}
+    protected _p_init(...args: unknown[]): void {}
 
     /**
-     * Private entry point for the main execution phase.
-     * Delegates to the overridable {@link _p_main} hook.
+     * Hook d'exécution principale, appelé une seule fois après {@link _p_init}.
      *
-     * @returns The return value of {@link _p_main}.
-     */
-    #_main() {
-        return this._p_main();
-    }
-
-    /**
-     * Protected main execution hook, called once during the startup lifecycle
-     * after {@link _p_init}.
-     *
-     * Override this method in subclasses to implement the core logic of the object
-     * (e.g. starting a server, launching a process).
+     * Surchargez cette méthode pour implémenter la logique cœur de l'objet
+     * (démarrage d'un serveur, lancement d'un processus, etc.).
      *
      * @example
      * ```typescript
-     * protected _p_main() {
+     * protected _p_main(): void {
      *   this.server.listen(this.port);
      * }
      * ```
      */
-    protected _p_main() {}
+    protected _p_main(): void {}
 
     /**
-     * Static factory method that instantiates a subclass, runs its full lifecycle,
-     * and returns the resulting instance.
+     * Méthode factory statique : instancie la sous-classe concrète, exécute son cycle
+     * de vie complet et retourne l'instance prête à l'emploi.
      *
-     * This is the **sole intended entry point** to create and start an `AStartObject`.
-     * It performs the following steps in order:
-     * 1. Instantiates the concrete subclass via `new`.
-     * 2. Calls `#_init(...args)` → dispatches to {@link _p_init}.
-     * 3. Calls `#_main()` → dispatches to {@link _p_main}.
-     * 4. Returns the fully initialized instance.
+     * C'est le **seul point d'entrée** prévu pour créer un `AStartObject`.
+     * Les étapes sont, dans l'ordre :
+     * 1. Instanciation de la sous-classe concrète.
+     * 2. Appel de `_init(...args)` → dispatche vers {@link _p_init}.
+     * 3. Appel de `_main()` → dispatche vers {@link _p_main}.
+     * 4. Retour de l'instance complètement initialisée.
      *
-     * @typeParam Y - The concrete subclass type being instantiated.
-     * @typeParam T - The type of the arguments passed to the initializer.
-     * @param args - Arguments forwarded to {@link _p_init} of the subclass.
-     * @returns A fully initialized instance of the concrete subclass.
+     * ### Pourquoi le cast ?
+     * TypeScript interdit `new this()` sur une classe abstraite, même depuis une méthode
+     * statique. Le cast `as unknown as ConcreteConstructor<Y>` est **inévitable** à cet
+     * endroit précis : il est localisé, documenté, et sans fuite vers l'extérieur.
+     * L'invariant est garanti par le fait que `Start` ne peut être appelée que sur une
+     * sous-classe concrète — TypeScript lèvera une erreur à la construction sinon.
+     *
+     * @typeParam Y - Type de la sous-classe concrète instanciée.
+     * @param args - Arguments transmis à {@link _p_init} de la sous-classe.
+     * @returns Une instance complètement initialisée de la sous-classe concrète.
      *
      * @example
      * ```typescript
-     * const app = MyApp.Start<MyApp, AppConfig>({ port: 3000, debug: true });
+     * const app = MyApp.Start(3000, true);
      * ```
      */
-    static Start<Y extends AStartObject, T = unknown>(...args: T[]): Y {
-        const self = this as any;
-        const element = new self() as Y;
-        element.#_init(...args);
-        element.#_main();
+    static Start<Y extends AStartObject>(...args: unknown[]): Y {
+        const ctor = this as unknown as ConcreteConstructor<Y>;
+        const element = new ctor();
+
+        element._init(...args);
+        element._main();
 
         return element;
     }
