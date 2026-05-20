@@ -58,15 +58,16 @@ export function omit<T extends object, K extends keyof T>(obj: T, keys: K[]): Om
  * (`undefined`, `Date`, `Map`, `Set`, fonctions…).
  *
  * @param obj - L'objet à cloner
+ * @param logger - Logger en cas du fallback.
  * @returns Un clone profond de `obj`
  *
  * @example
  * const clone = deepClone({ a: { b: 1 } })
  * clone.a.b = 99  // l'original n'est pas affecté
  */
-export function deepClone<T>(obj: T): T {
+export function deepClone<T>(obj: T, logger: (msg: string) => void = console.warn): T {
     if (typeof structuredClone !== "undefined") return structuredClone(obj);
-    console.warn("deepClone: structuredClone indisponible, fallback JSON (pertes possibles)");
+    logger("deepClone: structuredClone indisponible, fallback JSON (pertes possibles)");
     return pipe(obj, JSON.stringify, JSON.parse) as unknown as T;
 }
 
