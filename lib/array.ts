@@ -168,12 +168,12 @@ export function last<T>(arr: T[]): MayBe<T> {
 export function sum(arr: number[]): number {
     if (arr.length === 0) return 0;
 
-    let sum = 0;
+    let total = 0;
     for (let i = 0, len = arr.length; i < len; ++i) {
-        sum += arr[i];
+        total += arr[i];
     }
 
-    return sum;
+    return total;
 } 
 
 /**
