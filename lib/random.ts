@@ -43,11 +43,13 @@ export class Random {
    */
   static randomString(size: uint): string {
     const ALPHA = 'abcdefghijklmnopqrstuvwxyz';
+    const ALPHA_MIN = toInt(0);
+    const ALPHA_MAX = toInt(ALPHA.length); 
 
     const chars: string[] = [];
 
     for (let index = 0; index < size; ++index) {
-      chars.push(ALPHA[this.intRange(toInt(0), toInt(ALPHA.length))]);
+      chars.push(ALPHA[this.intRange(ALPHA_MIN, ALPHA_MAX)]);
     }
 
     return chars.join(EMPTY_STRING);
