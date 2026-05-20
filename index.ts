@@ -5,6 +5,7 @@ export * from "./lib/constants";
 export * from "./lib/types";
 export * from './lib/StartObject'
 export * from './lib/array';
+export * from './lib/number';
 
 export { Random }
 
