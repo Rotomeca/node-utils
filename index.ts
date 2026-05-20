@@ -1,9 +1,11 @@
 import { SPACE } from "./lib/constants";
 import { MayBe } from "./lib/types";
-
+import  { Random } from "./lib/random";
 export * from "./lib/constants";
 export * from "./lib/types";
-export * from "./lib/random";
+export * from './lib/StartObject'
+
+export { Random }
 
 //#region MiscFunctions
 /**
