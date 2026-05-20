@@ -28,7 +28,7 @@ export function isArrayLike<T>(item: T) {
       !!item &&
       typeof item === 'object' &&
       // eslint-disable-next-line no-prototype-builtins
-      item.hasOwnProperty('length') &&
+      Object.prototype.hasOwnProperty.call(item, 'length') &&
       typeof (item as any).length === 'number' &&
       (item as any).length > 0 &&
       (item as any).length - 1 in item
