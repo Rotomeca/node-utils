@@ -84,3 +84,35 @@ export function toUfloat(n: number): ufloat {
   if (!isFinite(n) || n < 0) throw new Error(`${n} is not a positive float`);
   return n as ufloat;
 }
+
+/**
+ * Convertit une chaîne en sélecteur CSS typé.
+ *
+ * - **Front-end** : validation complète via `document.querySelector`.
+ * - **Back-end** : validation partielle (présence de `#` ou `.`).
+ *   Tout appel en environnement Node.js lèvera une erreur explicite
+ *   si la validation native n'est pas disponible.
+ *
+ * @param s Chaîne à convertir
+ * @returns La valeur convertie en `Selector`
+ * @throws Erreur si la chaîne n'est pas un sélecteur CSS valide
+ */
+export function toSelector<T extends string>(s: T): Selector<T> {
+  if (typeof document !== 'undefined') {
+    // Environnement front-end : validation complète via l'API native
+    try {
+      document.querySelector(s);
+    } catch {
+      throw new Error(`"${s}" is not a valid CSS selector`);
+    }
+  } else {
+    // Environnement back-end : validation partielle + avertissement explicite
+    if (!s.includes('#') && !s.includes('.'))
+      throw new Error(
+        `"${s}" is not a valid CSS selector. ` +
+        `Note: full CSS validation is only available in browser environments.`
+      );
+  }
+
+  return s as Selector<T>;
+}
