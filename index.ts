@@ -7,7 +7,7 @@ export * from './lib/StartObject'
 export * from './lib/array';
 export * from './lib/number';
 export * from './lib/pipe';
-export * from './lib/objects';
+export * from './lib/object';
 
 export { Random }
 
