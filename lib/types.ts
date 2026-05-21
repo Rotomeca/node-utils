@@ -42,6 +42,49 @@ export type Optional<T> = T | undefined;
 export type MayBe<T> = Optional<Nullable<T>>;
 
 /**
+ * Représente une fonction qui ne retourne aucune valeur.
+ *
+ * Utilisé pour typer les callbacks, handlers d'événements et effets de bord
+ * où la valeur de retour n'a pas de sens. Préférer {@link Func} dès qu'une
+ * valeur de retour est attendue.
+ *
+ * @typeParam TArgs - Tuple représentant les types des arguments.
+ * Par défaut `any[]`, ce qui accepte n'importe quelle signature.
+ *
+ * @example
+ * ```ts
+ * const onClick: Action<[MouseEvent]> = (e) => console.log(e.target);
+ * const log: Action<[string, number]> = (msg, code) => console.log(msg, code);
+ * const noop: Action = () => {};
+ * ```
+ *
+ * @see {@link Func} pour les fonctions avec valeur de retour.
+ */
+export type Action<TArgs extends any[] = any[]> = (...args: TArgs) => void;
+
+/**
+ * Représente une fonction qui accepte des arguments et retourne une valeur.
+ *
+ * Utilisé pour typer les fonctions pures, transformations et utilitaires
+ * fonctionnels comme {@link memoize} ou {@link once} où la valeur de retour
+ * est significative.
+ *
+ * @typeParam TArgs - Tuple représentant les types des arguments.
+ * Par défaut `any[]`, ce qui accepte n'importe quelle signature.
+ * @typeParam TReturn - Type de la valeur retournée. Par défaut `any`.
+ *
+ * @example
+ * ```ts
+ * const double: Func<[number], number> = (n) => n * 2;
+ * const greet: Func<[string], string> = (name) => `Hello ${name}`;
+ * const parse: Func<[string], unknown> = JSON.parse;
+ * ```
+ *
+ * @see {@link Action} pour les fonctions sans valeur de retour.
+ */
+export type Func<TArgs extends any[] = any[], TReturn = any> = (...args: TArgs) => TReturn;
+
+/**
  * Convertit un nombre en entier typé.
  * @param n Nombre à convertir
  * @returns La valeur convertie en `int`
