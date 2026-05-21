@@ -28,7 +28,7 @@ import { float, int, toFloat, toInt, toUfloat, toUint, ufloat, uint } from "./ty
  */
 function createBrandedProxy<T>(
     validator: (n: number) => T,
-    prefillCache: Record<number, T> = {}
+    prefillCache: Record<string|number, T> = {}
 ): Record<number, T> {
     return new Proxy(prefillCache, {
         get: (target, prop) => {
