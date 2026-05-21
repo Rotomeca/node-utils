@@ -153,7 +153,7 @@ export function toPascalCase(str: string): PascalCaseString {
  * isNullOrWhiteSpace("   \n  ") // -> true
  * isNullOrWhiteSpace("texte")   // -> false
  */
-export function isNUllOrWhiteSpace(str: MayBe<string>): boolean {
+export function isNullOrWhiteSpace(str: MayBe<string>): boolean {
     if (str === null || str === undefined) return true;
 
     return str.trim() === EMPTY_STRING;
