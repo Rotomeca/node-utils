@@ -1,16 +1,6 @@
 import { MayBe, Optional, uint } from "./types";
 
 /**
- * Utilitaires pour les tableaux.
- *
- * Ce module fournit plusieurs fonctions utilitaires pour travailler avec des
- * tableaux typés en TypeScript. La documentation est fournie au format
- * TypeDoc (français).
- *
- * @packageDocumentation
- */
-
-/**
  * Découpe un tableau en sous-tableaux de taille donnée.
  *
  * Si le tableau est vide ou si `size` est inférieur ou égal à 0, la
@@ -26,8 +16,8 @@ import { MayBe, Optional, uint } from "./types";
  * ```
  */
 export function chunk<T>(arr: T[], size: uint): T[][] {
-    const length = arr.length;
-  
+  const length = arr.length;
+
   if (length === 0 || size <= 0) {
     return [];
   }
@@ -65,7 +55,7 @@ export function chunk<T>(arr: T[], size: uint): T[][] {
  * ```
  */
 export function unique<T>(arr: T[]): T[] {
-    return [...new Set(arr)];
+  return [...new Set(arr)];
 }
 
 /**
@@ -91,7 +81,7 @@ export function uniqueBy<T>(arr: T[], fn: (item: T) => unknown): T[] {
   for (let i = 0; i < length; i++) {
     const item = arr[i];
     const key = fn(item);
-    
+
     if (!seen.has(key)) {
       seen.add(key);
       result.push(item);
@@ -117,19 +107,22 @@ export function uniqueBy<T>(arr: T[], fn: (item: T) => unknown): T[] {
  * groupBy(['a','ab','b'], s => s[0]) // -> { a: ['a','ab'], b: ['b'] }
  * ```
  */
-export function groupBy<T>(arr: T[], fn: (item: T) => string): Record<string, T[]> {
-    const result: Record<string, T[]> = {};
+export function groupBy<T>(
+  arr: T[],
+  fn: (item: T) => string,
+): Record<string, T[]> {
+  const result: Record<string, T[]> = {};
 
-    for (let i = 0, len = arr.length; i < len; ++i) {
-        const element = arr[i];
-        const key = fn(element);
-        
-        if (!result[key]) result[key] = [];
-        
-        result[key].push(element);
-    }
+  for (let i = 0, len = arr.length; i < len; ++i) {
+    const element = arr[i];
+    const key = fn(element);
 
-    return result;
+    if (!result[key]) result[key] = [];
+
+    result[key].push(element);
+  }
+
+  return result;
 }
 
 /**
@@ -140,9 +133,9 @@ export function groupBy<T>(arr: T[], fn: (item: T) => string): Record<string, T[
  * @returns Le premier élément ou `null`.
  */
 export function first<T>(arr: T[]): MayBe<T> {
-    if (arr.length === 0) return null;
+  if (arr.length === 0) return null;
 
-    return arr[0];
+  return arr[0];
 }
 
 /**
@@ -153,10 +146,10 @@ export function first<T>(arr: T[]): MayBe<T> {
  * @returns Le dernier élément ou `null`.
  */
 export function last<T>(arr: T[]): MayBe<T> {
-    const len = arr.length;
-    if (len === 0) return null;
+  const len = arr.length;
+  if (len === 0) return null;
 
-    return arr[len - 1];
+  return arr[len - 1];
 }
 
 /**
@@ -166,22 +159,22 @@ export function last<T>(arr: T[]): MayBe<T> {
  * @returns La somme (0 si le tableau est vide).
  */
 export function sum(arr: number[]): number {
-    if (arr.length === 0) return 0;
+  if (arr.length === 0) return 0;
 
-    let total = 0;
-    for (let i = 0, len = arr.length; i < len; ++i) {
-        total += arr[i];
-    }
+  let total = 0;
+  for (let i = 0, len = arr.length; i < len; ++i) {
+    total += arr[i];
+  }
 
-    return total;
-} 
+  return total;
+}
 
 /**
  * Trie un tableau d'éléments en se basant sur une clé de comparaison extraite pour chaque élément.
- * 
- * Cette fonction est pure (elle ne mute pas le tableau d'origine). Pour garantir des performances 
- * optimales sur de grands jeux de données, elle implémente la Transformée de Schwartz 
- * (Decorate-Sort-Undecorate). Ainsi, la fonction d'extraction `fn` n'est exécutée qu'une 
+ *
+ * Cette fonction est pure (elle ne mute pas le tableau d'origine). Pour garantir des performances
+ * optimales sur de grands jeux de données, elle implémente la Transformée de Schwartz
+ * (Decorate-Sort-Undecorate). Ainsi, la fonction d'extraction `fn` n'est exécutée qu'une
  * seule fois par élément, évitant les goulets d'étranglement lors de calculs lourds.
  * Les chaînes de caractères sont triées nativement en tenant compte des spécificités locales (accents).
  *
@@ -196,35 +189,35 @@ export function sum(arr: number[]): number {
  *   { id: 1, name: 'Alice' },
  *   { id: 2, name: 'Éric' }
  * ];
- * 
+ *
  * // Tri numérique
- * const byId = sortBy(users, user => user.id); 
+ * const byId = sortBy(users, user => user.id);
  * // => [{id: 1, name: 'Alice'}, {id: 2, name: 'Éric'}, {id: 3, name: 'Zoe'}]
- * 
+ *
  * // Tri alphabétique (gère correctement les accents via localeCompare)
- * const byName = sortBy(users, user => user.name); 
+ * const byName = sortBy(users, user => user.name);
  * // => [{id: 1, name: 'Alice'}, {id: 2, name: 'Éric'}, {id: 3, name: 'Zoe'}]
  */
 export function sortBy<T>(arr: T[], fn: (item: T) => number | string): T[] {
-    const len = arr.length;
-    
-    const mapped = new Array<{ item: T; key: number | string }>(len);
-    
-    for (let i = 0; i < len; ++i) {
-        mapped[i] = { item: arr[i], key: fn(arr[i]) };
+  const len = arr.length;
+
+  const mapped = new Array<{ item: T; key: number | string }>(len);
+
+  for (let i = 0; i < len; ++i) {
+    mapped[i] = { item: arr[i], key: fn(arr[i]) };
+  }
+
+  mapped.sort((a, b) => {
+    if (typeof a.key === "number" && typeof b.key === "number") {
+      return a.key - b.key;
     }
+    return String(a.key).localeCompare(String(b.key));
+  });
 
-    mapped.sort((a, b) => {
-        if (typeof a.key === 'number' && typeof b.key === 'number') {
-            return a.key - b.key;
-        }
-        return String(a.key).localeCompare(String(b.key));
-    });
+  const result = new Array<T>(len);
+  for (let i = 0; i < len; ++i) {
+    result[i] = mapped[i].item;
+  }
 
-    const result = new Array<T>(len);
-    for (let i = 0; i < len; ++i) {
-        result[i] = mapped[i].item;
-    }
-
-    return result;
+  return result;
 }
