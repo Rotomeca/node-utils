@@ -11,3 +11,5 @@ export * from './lib/brandedproxy';
 export * from './lib/function';
 export * from './lib/async';
 export * from './lib/guard';
+export * from './lib/regex';
+export * from './lib/validator';
