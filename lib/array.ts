@@ -1,4 +1,4 @@
-import { MayBe, Optional, uint } from "./types";
+import { MayBe, uint } from "./types";
 
 /**
  * Découpe un tableau en sous-tableaux de taille donnée.
