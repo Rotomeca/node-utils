@@ -8,6 +8,9 @@ export * from './lib/number';
 export * from './lib/pipe';
 export * from './lib/object';
 export * from './lib/string';
+export * from './lib/brandedproxy';
+export * from './lib/function';
+export * from './lib/async';
 
 export { Random }
 
