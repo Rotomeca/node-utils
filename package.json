@@ -2,14 +2,14 @@
   "name": "@rotomeca/utils",
   "version": "6.1.0",
   "description": "Various helpers",
-  "type": "module", 
+  "type": "module",
   "main": "./dist/cjs/index.js",
   "module": "./dist/esm/index.js",
   "types": "./dist/esm/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/esm/index.d.ts",
-      "import": "./dist/esm/index.js", 
+      "import": "./dist/esm/index.js",
       "require": "./dist/cjs/index.js"
     }
   },
@@ -17,11 +17,14 @@
     "dist"
   ],
   "scripts": {
-    "prebuild": "rm -rf dist", 
+    "prebuild": "rm -rf dist",
     "build": "npm run build:esm && npm run build:cjs",
     "build:esm": "tsc -p tsconfig.json",
     "build:cjs": "tsc -p tsconfig.cjs.json && echo '{\"type\": \"commonjs\"}' > dist/cjs/package.json",
-    "bundle": "node build-bundle.js"
+    "bundle": "node build-bundle.js",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
   },
   "repository": {
     "type": "git",
@@ -38,9 +41,12 @@
   "homepage": "https://github.com/Rotomeca/node-utils#readme",
   "devDependencies": {
     "@typescript-eslint/parser": "^5.62.0",
+    "@vitest/coverage-v8": "^4.1.7",
     "eslint": "^8.57.1",
     "prettier": "^3.8.1",
     "prettier-eslint": "^16.4.2",
-    "typescript": "^5.6.3"
-  }
+    "typescript": "^5.6.3",
+    "vitest": "^4.1.7"
+  },
+  "sideEffects": false
 }
