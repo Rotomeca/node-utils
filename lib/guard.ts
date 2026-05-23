@@ -17,7 +17,7 @@ import { MayBe } from "./types";
  * ```
  */
 export function isNonEmptyString(str: unknown): str is string {
-    return typeof str === 'string' && str.trim().length > 0;
+  return typeof str === "string" && str.trim().length > 0;
 }
 
 /**
@@ -45,14 +45,14 @@ export function isNonEmptyString(str: unknown): str is string {
  * ```
  */
 export function isArrayLike<T>(item: T): boolean {
-    return (
-        !!item &&
-        typeof item === 'object' &&
-        // eslint-disable-next-line no-prototype-builtins
-        Object.prototype.hasOwnProperty.call(item, 'length') &&
-        typeof (item as any).length === 'number' &&
-        (item as any).length - 1 in item
-    );
+  return (
+    !!item &&
+    typeof item === "object" &&
+    // eslint-disable-next-line no-prototype-builtins
+    Object.prototype.hasOwnProperty.call(item, "length") &&
+    typeof (item as any).length === "number" &&
+    (item as any).length - 1 in item
+  );
 }
 
 /**
@@ -71,7 +71,7 @@ export function isArrayLike<T>(item: T): boolean {
  * ```
  */
 export function isNonEmptyArray<T>(arr: unknown): arr is [T, ...T[]] {
-    return Array.isArray(arr) && arr.length > 0;
+  return Array.isArray(arr) && arr.length > 0;
 }
 
 /**
@@ -89,7 +89,43 @@ export function isNonEmptyArray<T>(arr: unknown): arr is [T, ...T[]] {
  * ```
  */
 export function isObject(val: unknown): val is Record<string, unknown> {
-    return typeof val === 'object' && val !== null && !Array.isArray(val);
+  return typeof val === "object" && val !== null && !Array.isArray(val);
+}
+
+/**
+ * Vérifie si une valeur est un objet plain, c'est-à-dire un objet littéral
+ * ou créé via `Object.create(null)`, sans prototype de classe custom.
+ *
+ * Sont exclus : `null`, les tableaux, et toute instance de classe
+ * (`Date`, `RegExp`, `Map`, `Set`, `Error`, classes custom, etc.).
+ *
+ * Contrairement à {@link isObject} qui n'exclut que `null` et les tableaux,
+ * cette fonction garantit que la valeur est un objet plain sûr à itérer
+ * clé par clé, sans effets de bord liés à un prototype custom.
+ *
+ * @param item - La valeur à tester.
+ * @returns `true` si `item` est un objet plain, affinant le type en `Record<string, unknown>`.
+ *
+ * @example
+ * ```ts
+ * isPlainObject({ a: 1 })          // → true
+ * isPlainObject(Object.create(null)) // → true
+ * isPlainObject([1, 2])            // → false
+ * isPlainObject(new Date())        // → false
+ * isPlainObject(new Map())         // → false
+ * isPlainObject(null)              // → false
+ * isPlainObject(new MyClass())     // → false
+ * ```
+ */
+export function isPlainObject(item: unknown): item is Record<string, unknown> {
+  if (item === null || typeof item !== "object" || Array.isArray(item))
+    return false;
+
+  const proto = Object.getPrototypeOf(item);
+
+  if (proto === null) return true;
+
+  return proto === Object.prototype;
 }
 
 /**
@@ -116,7 +152,7 @@ export function isObject(val: unknown): val is Record<string, unknown> {
  * ```
  */
 export function isDefined<T>(item: MayBe<T>): item is NonNullable<T> {
-    return item !== null && item !== undefined;
+  return item !== null && item !== undefined;
 }
 
 /**
@@ -141,5 +177,5 @@ export function isDefined<T>(item: MayBe<T>): item is NonNullable<T> {
  * ```
  */
 export function isNullOrUndefined<T>(item: MayBe<T>): item is null | undefined {
-    return !isDefined(item);
+  return !isDefined(item);
 }
