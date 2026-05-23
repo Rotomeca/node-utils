@@ -221,3 +221,190 @@ export function sortBy<T>(arr: T[], fn: (item: T) => number | string): T[] {
 
   return result;
 }
+
+/**
+ * Aplatit un tableau de tableaux en un tableau à un seul niveau de profondeur.
+ *
+ * Utilise `Array.flat()` nativement si disponible (Node 11+, navigateurs modernes),
+ * avec un fallback manuel sans limite de call stack pour les environnements anciens.
+ *
+ * @typeParam T - Type des éléments contenus dans les sous-tableaux.
+ * @param arr - Le tableau de tableaux à aplatir.
+ * @returns Un nouveau tableau contenant tous les éléments des sous-tableaux, dans l'ordre.
+ *
+ * @remarks
+ * Ne traite qu'un seul niveau de profondeur — les sous-tableaux imbriqués
+ * au-delà du premier niveau sont conservés tels quels.
+ *
+ * Le fallback évite intentionnellement `concat(...arr)` qui peut lever un
+ * `RangeError: Maximum call stack size exceeded` sur de grands volumes de sous-tableaux.
+ *
+ * @example
+ * ```ts
+ * flatten([[1, 2], [3, 4], [5]]) // → [1, 2, 3, 4, 5]
+ * flatten([[1, [2, 3]], [4]])     // → [1, [2, 3], 4]  (un seul niveau)
+ * flatten([])                    // → []
+ * ```
+ */
+export function flatten<T>(arr: T[][]): T[] {
+  if (typeof arr.flat === "function") return arr.flat() as T[];
+
+  const result: T[] = [];
+  for (let i = 0, len = arr.length; i < len; ++i) {
+    const sub = arr[i];
+    for (let j = 0, subLen = sub.length; j < subLen; ++j) {
+      result.push(sub[j]);
+    }
+  }
+
+  return result;
+}
+
+/**
+ * Aplatit récursivement un tableau imbriqué sur tous les niveaux de profondeur.
+ *
+ * Utilise `Array.flat(Infinity)` nativement si disponible (Node 11+, navigateurs modernes),
+ * avec un fallback récursif pour les environnements anciens.
+ *
+ * @typeParam T - Type des éléments feuilles attendus après aplatissement complet.
+ * @param arr - Le tableau potentiellement imbriqué à aplatir.
+ * @returns Un nouveau tableau plat contenant tous les éléments feuilles, dans l'ordre.
+ *
+ * @remarks
+ * Le paramètre `arr` est typé `unknown[]` car la profondeur d'imbrication est arbitraire —
+ * `T[][]` ou `T[][][]` ne permettraient pas de représenter une profondeur variable.
+ * Le consommateur est responsable de fournir le type `T` correspondant aux éléments feuilles.
+ *
+ * Le fallback récursif peut atteindre les limites de call stack sur des structures
+ * extrêmement profondes (plusieurs milliers de niveaux d'imbrication). Ce cas est
+ * considéré hors scope pour un usage standard.
+ *
+ * Pour un aplatissement à un seul niveau, préférer {@link flatten}.
+ *
+ * @example
+ * ```ts
+ * flattenDeep<number>([1, [2, [3, [4]]]])   // → [1, 2, 3, 4]
+ * flattenDeep<number>([1, [2], [[3], [4]]]) // → [1, 2, 3, 4]
+ * flattenDeep<number>([])                   // → []
+ * ```
+ *
+ * @see {@link flatten} pour un aplatissement à un seul niveau.
+ */
+export function flattenDeep<T>(arr: unknown[]): T[] {
+  if (typeof (arr as any).flat === "function")
+    return (arr as any).flat(Infinity) as T[];
+
+  const result: T[] = [];
+
+  for (let i = 0, len = arr.length; i < len; ++i) {
+    const item = arr[i];
+    if (Array.isArray(item)) {
+      const nested = flattenDeep<T>(item);
+      for (let j = 0, nestedLen = nested.length; j < nestedLen; ++j) {
+        result.push(nested[j]);
+      }
+    } else {
+      result.push(item as T);
+    }
+  }
+
+  return result;
+}
+
+/**
+ * Supprime les valeurs falsy d'un tableau (`null`, `undefined`, `false`, `0`, `""`).
+ *
+ * @typeParam T - Type des éléments conservés après filtrage.
+ * @param arr - Le tableau source pouvant contenir des valeurs falsy.
+ * @returns Un nouveau tableau ne contenant que les valeurs truthy, typé `T[]`.
+ *
+ * @remarks
+ * Les valeurs `0`, `false` et `""` sont supprimées même si `T` les inclut.
+ * Si ces valeurs sont significatives dans votre contexte, préférer un filtre
+ * explicite avec `arr.filter(x => x !== null && x !== undefined)`.
+ *
+ * @example
+ * ```ts
+ * compact([1, null, 2, undefined, 3])       // → [1, 2, 3]
+ * compact(["a", "", "b", null])             // → ["a", "b"]
+ * compact<number | null>([0, 1, null, 2])   // → [1, 2]  (0 supprimé)
+ * ```
+ */
+export function compact<T>(
+  arr: Array<T | null | undefined | false | 0 | "">,
+): T[] {
+  return arr.filter((x): x is T => !!x) as T[];
+}
+
+/**
+ * Divise un tableau en deux sous-tableaux selon un prédicat.
+ *
+ * Le premier sous-tableau contient les éléments pour lesquels `predicate`
+ * retourne `true`, le second ceux pour lesquels il retourne `false`.
+ * L'ordre relatif des éléments est préservé dans chaque sous-tableau.
+ *
+ * @typeParam T - Type des éléments du tableau.
+ * @param arr - Le tableau source à diviser.
+ * @param predicate - La fonction de test appliquée à chaque élément.
+ * @returns Un tuple `[truthy[], falsy[]]` contenant les deux sous-tableaux.
+ *
+ * @example
+ * ```ts
+ * partition([1, 2, 3, 4, 5], x => x % 2 === 0)
+ * // → [[2, 4], [1, 3, 5]]
+ *
+ * partition(['alice', 'bob', 'anna'], s => s.startsWith('a'))
+ * // → [['alice', 'anna'], ['bob']]
+ *
+ * partition([], x => x > 0)
+ * // → [[], []]
+ * ```
+ */
+export function partition<T>(
+  arr: T[],
+  predicate: (item: T) => boolean,
+): [T[], T[]] {
+  const result: [T[], T[]] = [[], []];
+  for (let i = 0, len = arr.length; i < len; ++i) {
+    const element = arr[i];
+    result[predicate(element) ? 0 : 1].push(element);
+  }
+  return result;
+}
+
+/**
+ * Divise un tableau en deux sous-tableaux nommés selon un prédicat.
+ *
+ * Variante de {@link partition} retournant un objet `{ pass, fail }` plutôt
+ * qu'un tuple, pour un accès nommé plus expressif sans destructuring positionnel.
+ *
+ * @typeParam T - Type des éléments du tableau.
+ * @param arr - Le tableau source à diviser.
+ * @param predicate - La fonction de test appliquée à chaque élément.
+ * @returns Un objet contenant `pass` (éléments satisfaisant le prédicat)
+ * et `fail` (éléments ne le satisfaisant pas).
+ *
+ * @example
+ * ```ts
+ * partitionToObject([1, 2, 3, 4, 5], x => x % 2 === 0)
+ * // → { pass: [2, 4], fail: [1, 3, 5] }
+ *
+ * partitionToObject(['alice', 'bob', 'anna'], s => s.startsWith('a'))
+ * // → { pass: ['alice', 'anna'], fail: ['bob'] }
+ * ```
+ *
+ * @see {@link partition} pour la variante tuple `[pass, fail]`.
+ */
+export function partitionToObject<T>(
+  arr: T[],
+  predicate: (item: T) => boolean,
+): { pass: T[]; fail: T[] } {
+  const [pass, fail] = partition(arr, predicate);
+  return { pass, fail };
+}
+
+export function intersection<T>(a: T[], b: T[]): T[] {
+  let bSet = new Set(b);
+
+  return a.filter(x => x)
+}
