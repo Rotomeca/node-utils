@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [main, dev]
+    branches: [main, dev, reture/array2]
   pull_request:
-    branches: [main, dev]
+    branches: [main, dev, reture/array2]
 
 jobs:
   # ── 1. Vérification TypeScript ────────────────────────────────
