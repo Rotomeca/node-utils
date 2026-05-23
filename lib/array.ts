@@ -403,8 +403,8 @@ export function partitionToObject<T>(
   return { pass, fail };
 }
 
-export function intersection<T>(a: T[], b: T[]): T[] {
-  let bSet = new Set(b);
+// export function intersection<T>(a: T[], b: T[]): T[] {
+//   let bSet = new Set(b);
 
-  return a.filter(x => x)
-}
+//   return a.filter(x => x)
+// }
