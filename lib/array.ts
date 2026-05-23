@@ -1,4 +1,5 @@
-import { MayBe, uint } from "./types";
+import { isDefined } from "./guard";
+import { MayBe, Nullable, uint } from "./types";
 
 /**
  * Découpe un tableau en sous-tableaux de taille donnée.
@@ -403,8 +404,287 @@ export function partitionToObject<T>(
   return { pass, fail };
 }
 
-// export function intersection<T>(a: T[], b: T[]): T[] {
-//   let bSet = new Set(b);
+/**
+ * Fonction interne partagée entre {@link intersection} et {@link difference}.
+ *
+ * Parcourt `a` en une seule passe et conserve les éléments dont la présence
+ * dans `bSet` correspond au drapeau `bhas`, en dédupliquant à la volée.
+ *
+ * @internal
+ * @typeParam T - Type des éléments des tableaux.
+ * @param a - Tableau source à parcourir.
+ * @param b - Tableau utilisé pour construire l'ensemble de référence.
+ * @param bhas - `true` pour garder les éléments présents dans `b` (intersection),
+ *               `false` pour garder les éléments absents de `b` (difference).
+ * @returns Un nouveau tableau dédupliqué, ordonné selon `a`.
+ */
+function _englobeFunction<T>(a: T[], b: T[], bhas: boolean): T[] {
+  const bSet = new Set(b);
+  const seen = new Set<T>();
+  const result: T[] = [];
 
-//   return a.filter(x => x)
-// }
+  for (let i = 0, len = a.length; i < len; ++i) {
+    const x = a[i];
+    if (bSet.has(x) === bhas && !seen.has(x)) {
+      seen.add(x);
+      result.push(x);
+    }
+  }
+
+  return result;
+}
+
+/**
+ * Retourne les éléments présents à la fois dans `a` et dans `b`, sans doublons.
+ *
+ * L'ordre des éléments est celui de leur première apparition dans `a`.
+ * Les deux tableaux d'origine ne sont pas mutés.
+ *
+ * @typeParam T - Type des éléments des tableaux.
+ * @param a - Premier tableau source.
+ * @param b - Second tableau source utilisé comme filtre.
+ * @returns Un nouveau tableau contenant les éléments communs aux deux tableaux, sans doublon.
+ *
+ * @example
+ * ```ts
+ * intersection([1, 2, 3], [2, 3, 4])   // → [2, 3]
+ * intersection([1, 1, 2], [1, 2])      // → [1, 2]
+ * intersection(['a', 'b'], ['b', 'c']) // → ['b']
+ * intersection([1, 2], [3, 4])         // → []
+ * ```
+ */
+export function intersection<T>(a: T[], b: T[]): T[] {
+  return _englobeFunction(a, b, true);
+}
+
+/**
+ * Retourne les éléments présents dans `a` mais absents de `b`, sans doublons.
+ *
+ * L'ordre des éléments est celui de leur première apparition dans `a`.
+ * Les deux tableaux d'origine ne sont pas mutés.
+ *
+ * @typeParam T - Type des éléments des tableaux.
+ * @param a - Tableau source dont on extrait les éléments.
+ * @param b - Tableau des éléments à exclure.
+ * @returns Un nouveau tableau contenant les éléments de `a` absents de `b`, sans doublon.
+ *
+ * @example
+ * ```ts
+ * difference([1, 2, 3], [2, 3, 4]) // → [1]
+ * difference([1, 1, 2], [2])       // → [1]
+ * difference([1, 2, 3], [])        // → [1, 2, 3]
+ * difference([], [1, 2, 3])        // → []
+ * ```
+ */
+export function difference<T>(a: T[], b: T[]): T[] {
+  return _englobeFunction(a, b, false);
+}
+
+/**
+ * Retourne tous les éléments de `a` et de `b` réunis, sans doublons.
+ *
+ * L'ordre des éléments est celui de leur première apparition dans la
+ * concaténation `[...a, ...b]`. Les deux tableaux d'origine ne sont pas mutés.
+ *
+ * @typeParam T - Type des éléments des tableaux.
+ * @param a - Premier tableau source.
+ * @param b - Second tableau source.
+ * @returns Un nouveau tableau contenant tous les éléments des deux tableaux, sans doublon.
+ *
+ * @example
+ * ```ts
+ * union([1, 2, 3], [2, 3, 4]) // → [1, 2, 3, 4]
+ * union([1, 1, 2], [2, 3])    // → [1, 2, 3]
+ * union([], [1, 2])            // → [1, 2]
+ * union([1, 2], [])            // → [1, 2]
+ * ```
+ */
+export function union<T>(a: T[], b: T[]): T[] {
+  return unique([...a, ...b]);
+}
+
+/**
+ * Combine deux tableaux en un tableau de paires, en s'arrêtant au tableau le plus court.
+ *
+ * Chaque élément du tableau résultant est un tuple `[A, B]` associant
+ * l'élément de `a` et celui de `b` au même index.
+ * Les deux tableaux d'origine ne sont pas mutés.
+ *
+ * @typeParam A - Type des éléments du premier tableau.
+ * @typeParam B - Type des éléments du second tableau.
+ * @param a - Premier tableau source.
+ * @param b - Second tableau source.
+ * @returns Un tableau de tuples `[A, B]` de longueur `Math.min(a.length, b.length)`.
+ *
+ * @example
+ * ```ts
+ * zip([1, 2, 3], ['a', 'b', 'c']) // → [[1, 'a'], [2, 'b'], [3, 'c']]
+ * zip([1, 2, 3], ['a', 'b'])      // → [[1, 'a'], [2, 'b']]  (s'arrête au plus court)
+ * zip([], [1, 2, 3])              // → []
+ * ```
+ */
+export function zip<A, B>(a: A[], b: B[]): [A, B][] {
+  const len = Math.min(a.length, b.length);
+  const result: [A, B][] = new Array(len);
+
+  for (let i = 0; i < len; ++i) {
+    result[i] = [a[i], b[i]];
+  }
+
+  return result;
+}
+
+/**
+ * Retourne les `n` premiers éléments du tableau.
+ *
+ * Si `n` est supérieur ou égal à la longueur du tableau, une copie complète
+ * est retournée. Le tableau d'origine n'est pas muté.
+ *
+ * @typeParam T - Type des éléments du tableau.
+ * @param arr - Le tableau source.
+ * @param n - Le nombre d'éléments à conserver depuis le début.
+ * @returns Un nouveau tableau contenant au plus `n` éléments.
+ *
+ * @example
+ * ```ts
+ * take([1, 2, 3, 4, 5], 3) // → [1, 2, 3]
+ * take([1, 2, 3], 5)        // → [1, 2, 3]
+ * take([1, 2, 3], 0)        // → []
+ * ```
+ */
+export function take<T>(arr: T[], n: uint): T[] {
+  return arr.slice(0, n);
+}
+
+/**
+ * Retourne le tableau sans les `n` premiers éléments.
+ *
+ * Si `n` est supérieur ou égal à la longueur du tableau, un tableau vide
+ * est retourné. Le tableau d'origine n'est pas muté.
+ *
+ * @typeParam T - Type des éléments du tableau.
+ * @param arr - Le tableau source.
+ * @param n - Le nombre d'éléments à supprimer depuis le début.
+ * @returns Un nouveau tableau sans les `n` premiers éléments.
+ *
+ * @example
+ * ```ts
+ * drop([1, 2, 3, 4, 5], 2) // → [3, 4, 5]
+ * drop([1, 2, 3], 5)        // → []
+ * drop([1, 2, 3], 0)        // → [1, 2, 3]
+ * ```
+ */
+export function drop<T>(arr: T[], n: uint): T[] {
+  return arr.slice(n);
+}
+
+/**
+ * Retourne une copie du tableau avec les éléments dans un ordre aléatoire.
+ *
+ * Utilise l'algorithme de Fisher-Yates (Knuth shuffle) : pour chaque position
+ * en partant de la fin, on échange l'élément courant avec un élément choisi
+ * aléatoirement parmi les positions restantes (0 à i inclus).
+ * Le tableau d'origine n'est pas muté.
+ *
+ * @typeParam T - Type des éléments du tableau.
+ * @param arr - Le tableau source à mélanger.
+ * @returns Un nouveau tableau contenant les mêmes éléments dans un ordre aléatoire.
+ *
+ * @example
+ * ```ts
+ * shuffle([1, 2, 3, 4, 5]) // → [3, 1, 5, 2, 4]  (ordre variable)
+ * shuffle([])              // → []
+ * shuffle([42])            // → [42]
+ * ```
+ */
+export function shuffle<T>(arr: T[]): T[] {
+  const result = [...arr];
+
+  for (let i = result.length - 1; i > 0; --i) {
+    const j = Math.floor(Math.random() * (i + 1));
+    const temp = result[i];
+    result[i] = result[j];
+    result[j] = temp;
+  }
+
+  return result;
+}
+
+/**
+ * Fonction interne partagée entre {@link minBy} et {@link maxBy}.
+ *
+ * Parcourt `arr` en une seule passe et retourne l'élément dont la valeur
+ * extraite par `fn` est la plus petite (`isMin: true`) ou la plus grande
+ * (`isMin: false`).
+ *
+ * @internal
+ * @typeParam T - Type des éléments du tableau.
+ * @param arr - Tableau source à parcourir.
+ * @param fn - Fonction d'extraction de la valeur numérique de comparaison.
+ * @param isMin - `true` pour rechercher le minimum, `false` pour le maximum.
+ * @returns L'élément optimal, ou `null` si le tableau est vide.
+ */
+function _minMaxBy<T>(
+  arr: T[],
+  fn: (item: T) => number,
+  { isMin }: { isMin: boolean },
+): Nullable<T> {
+  if (!arr || arr.length === 0) return null;
+
+  let value: Nullable<number> = null;
+  let index = 0;
+
+  for (let i = 0, len = arr.length; i < len; ++i) {
+    const result = fn(arr[i]);
+    if (
+      !isDefined(value) ||
+      (isMin && value > result) ||
+      (!isMin && result > value)
+    ) {
+      value = result;
+      index = i;
+    }
+  }
+
+  return arr[index];
+}
+
+/**
+ * Retourne l'élément du tableau dont la valeur extraite par `fn` est la plus petite.
+ *
+ * En cas d'égalité, le premier élément rencontré est retourné.
+ *
+ * @typeParam T - Type des éléments du tableau.
+ * @param arr - Le tableau source.
+ * @param fn - Fonction d'extraction de la valeur numérique de comparaison.
+ * @returns L'élément minimal selon `fn`, ou `null` si le tableau est vide.
+ *
+ * @example
+ * ```ts
+ * minBy([{ n: 3 }, { n: 1 }, { n: 2 }], x => x.n) // → { n: 1 }
+ * minBy([], x => x)                                 // → null
+ * ```
+ */
+export function minBy<T>(arr: T[], fn: (item: T) => number): Nullable<T> {
+  return _minMaxBy(arr, fn, { isMin: true });
+}
+
+/**
+ * Retourne l'élément du tableau dont la valeur extraite par `fn` est la plus grande.
+ *
+ * En cas d'égalité, le premier élément rencontré est retourné.
+ *
+ * @typeParam T - Type des éléments du tableau.
+ * @param arr - Le tableau source.
+ * @param fn - Fonction d'extraction de la valeur numérique de comparaison.
+ * @returns L'élément maximal selon `fn`, ou `null` si le tableau est vide.
+ *
+ * @example
+ * ```ts
+ * maxBy([{ n: 3 }, { n: 1 }, { n: 2 }], x => x.n) // → { n: 3 }
+ * maxBy([], x => x)                                 // → null
+ * ```
+ */
+export function maxBy<T>(arr: T[], fn: (item: T) => number): Nullable<T> {
+  return _minMaxBy(arr, fn, { isMin: false });
+}

@@ -13,9 +13,19 @@ import {
   compact,
   partition,
   partitionToObject,
+  intersection,
+  difference,
+  union,
+  zip,
+  take,
+  drop,
+  shuffle,
+  maxBy,
+  minBy,
 } from "../lib/array";
 import { Uint } from "../lib/brandedproxy";
 import { UI_TEN, UI_ZERO } from "../lib/constants";
+import { toUint } from "../lib/types";
 
 describe("array", () => {
   // ── chunk ───────────────────────────────────────────────────
@@ -442,6 +452,484 @@ describe("array", () => {
       const result = partitionToObject([1], (x) => x > 0);
       expect(result).toHaveProperty("pass");
       expect(result).toHaveProperty("fail");
+    });
+  });
+
+  // ── intersection ────────────────────────────────────────
+  describe("intersection", () => {
+    it("Retourne les éléments communs aux deux tableaux", () => {
+      expect(intersection([1, 2, 3], [2, 3, 4])).toEqual([2, 3]);
+    });
+
+    it("Retourne un tableau vide si aucun élément en commun", () => {
+      expect(intersection([1, 2], [3, 4])).toEqual([]);
+    });
+
+    it("Retourne un tableau vide si le premier tableau est vide", () => {
+      expect(intersection([], [1, 2, 3])).toEqual([]);
+    });
+
+    it("Retourne un tableau vide si le second tableau est vide", () => {
+      expect(intersection([1, 2, 3], [])).toEqual([]);
+    });
+
+    it("Retourne un tableau vide si les deux tableaux sont vides", () => {
+      expect(intersection([], [])).toEqual([]);
+    });
+
+    it("Déduplique les résultats quand a contient des doublons", () => {
+      expect(intersection([1, 1, 2, 2], [1, 2])).toEqual([1, 2]);
+    });
+
+    it("Préserve l'ordre d'apparition dans a", () => {
+      expect(intersection([3, 1, 2], [1, 2, 3])).toEqual([3, 1, 2]);
+    });
+
+    it("Fonctionne avec des tableaux de chaînes", () => {
+      expect(intersection(["a", "b", "c"], ["b", "c", "d"])).toEqual([
+        "b",
+        "c",
+      ]);
+    });
+
+    it("Fonctionne avec des tableaux d'objets par référence", () => {
+      const obj1 = { id: 1 };
+      const obj2 = { id: 2 };
+      expect(intersection([obj1, obj2], [obj2])).toEqual([obj2]);
+    });
+
+    it("Ne mute pas les tableaux d'origine", () => {
+      const a = [1, 2, 3];
+      const b = [2, 3, 4];
+      const aCopy = [...a];
+      const bCopy = [...b];
+      intersection(a, b);
+      expect(a).toEqual(aCopy);
+      expect(b).toEqual(bCopy);
+    });
+
+    it("Retourne un nouveau tableau distinct des tableaux d'origine", () => {
+      const a = [1, 2, 3];
+      const b = [1, 2, 3];
+      const result = intersection(a, b);
+      expect(result).not.toBe(a);
+      expect(result).not.toBe(b);
+    });
+  });
+
+  // ── difference ────────────────────────────────────────
+  describe("difference", () => {
+    it("Retourne les éléments de a absents de b", () => {
+      expect(difference([1, 2, 3], [2, 3, 4])).toEqual([1]);
+    });
+
+    it("Retourne tous les éléments de a si b est vide", () => {
+      expect(difference([1, 2, 3], [])).toEqual([1, 2, 3]);
+    });
+
+    it("Retourne un tableau vide si a est vide", () => {
+      expect(difference([], [1, 2, 3])).toEqual([]);
+    });
+
+    it("Retourne un tableau vide si tous les éléments de a sont dans b", () => {
+      expect(difference([1, 2], [1, 2, 3])).toEqual([]);
+    });
+
+    it("Retourne un tableau vide si les deux tableaux sont vides", () => {
+      expect(difference([], [])).toEqual([]);
+    });
+
+    it("Déduplique les résultats quand a contient des doublons", () => {
+      expect(difference([1, 1, 2, 2], [2])).toEqual([1]);
+    });
+
+    it("Préserve l'ordre d'apparition dans a", () => {
+      expect(difference([3, 1, 2], [2])).toEqual([3, 1]);
+    });
+
+    it("Fonctionne avec des tableaux de chaînes", () => {
+      expect(difference(["a", "b", "c"], ["b"])).toEqual(["a", "c"]);
+    });
+
+    it("Fonctionne avec des tableaux d'objets par référence", () => {
+      const obj1 = { id: 1 };
+      const obj2 = { id: 2 };
+      expect(difference([obj1, obj2], [obj2])).toEqual([obj1]);
+    });
+
+    it("Ne mute pas les tableaux d'origine", () => {
+      const a = [1, 2, 3];
+      const b = [2, 3];
+      const aCopy = [...a];
+      const bCopy = [...b];
+      difference(a, b);
+      expect(a).toEqual(aCopy);
+      expect(b).toEqual(bCopy);
+    });
+
+    it("Retourne un nouveau tableau distinct des tableaux d'origine", () => {
+      const a = [1, 2, 3];
+      const b = [3];
+      const result = difference(a, b);
+      expect(result).not.toBe(a);
+      expect(result).not.toBe(b);
+    });
+  });
+
+  // ── union ────────────────────────────────────────
+  describe("union", () => {
+    it("Retourne tous les éléments des deux tableaux sans doublons", () => {
+      expect(union([1, 2, 3], [2, 3, 4])).toEqual([1, 2, 3, 4]);
+    });
+
+    it("Retourne les éléments de b si a est vide", () => {
+      expect(union([], [1, 2, 3])).toEqual([1, 2, 3]);
+    });
+
+    it("Retourne les éléments de a si b est vide", () => {
+      expect(union([1, 2, 3], [])).toEqual([1, 2, 3]);
+    });
+
+    it("Retourne un tableau vide si les deux tableaux sont vides", () => {
+      expect(union([], [])).toEqual([]);
+    });
+
+    it("Déduplique les doublons présents dans a seul", () => {
+      expect(union([1, 1, 2], [3])).toEqual([1, 2, 3]);
+    });
+
+    it("Déduplique les doublons présents dans b seul", () => {
+      expect(union([1], [2, 2, 3])).toEqual([1, 2, 3]);
+    });
+
+    it("Déduplique les éléments communs aux deux tableaux", () => {
+      expect(union([1, 2], [2, 3])).toEqual([1, 2, 3]);
+    });
+
+    it("Préserve l'ordre : éléments de a en premier, puis nouveaux éléments de b", () => {
+      expect(union([3, 1], [2, 1])).toEqual([3, 1, 2]);
+    });
+
+    it("Fonctionne avec des tableaux de chaînes", () => {
+      expect(union(["a", "b"], ["b", "c"])).toEqual(["a", "b", "c"]);
+    });
+
+    it("Fonctionne avec des tableaux d'objets par référence", () => {
+      const obj1 = { id: 1 };
+      const obj2 = { id: 2 };
+      const obj3 = { id: 3 };
+      expect(union([obj1, obj2], [obj2, obj3])).toEqual([obj1, obj2, obj3]);
+    });
+
+    it("Ne mute pas les tableaux d'origine", () => {
+      const a = [1, 2];
+      const b = [3, 4];
+      const aCopy = [...a];
+      const bCopy = [...b];
+      union(a, b);
+      expect(a).toEqual(aCopy);
+      expect(b).toEqual(bCopy);
+    });
+
+    it("Retourne un nouveau tableau distinct des tableaux d'origine", () => {
+      const a = [1, 2];
+      const b = [3, 4];
+      const result = union(a, b);
+      expect(result).not.toBe(a);
+      expect(result).not.toBe(b);
+    });
+  });
+  // ── zip ────────────────────────────────────────
+  describe("zip", () => {
+    it("Combine deux tableaux de même longueur en paires", () => {
+      expect(zip([1, 2, 3], ["a", "b", "c"])).toEqual([
+        [1, "a"],
+        [2, "b"],
+        [3, "c"],
+      ]);
+    });
+
+    it("S'arrête au tableau le plus court quand a est plus long", () => {
+      expect(zip([1, 2, 3], ["a", "b"])).toEqual([
+        [1, "a"],
+        [2, "b"],
+      ]);
+    });
+
+    it("S'arrête au tableau le plus court quand b est plus long", () => {
+      expect(zip([1, 2], ["a", "b", "c"])).toEqual([
+        [1, "a"],
+        [2, "b"],
+      ]);
+    });
+
+    it("Retourne un tableau vide si a est vide", () => {
+      expect(zip([], [1, 2, 3])).toEqual([]);
+    });
+
+    it("Retourne un tableau vide si b est vide", () => {
+      expect(zip([1, 2, 3], [])).toEqual([]);
+    });
+
+    it("Retourne un tableau vide si les deux tableaux sont vides", () => {
+      expect(zip([], [])).toEqual([]);
+    });
+
+    it("Fonctionne avec deux types différents", () => {
+      expect(zip([true, false], [1, 0])).toEqual([
+        [true, 1],
+        [false, 0],
+      ]);
+    });
+
+    it("Fonctionne avec des tableaux d'objets", () => {
+      const a = [{ id: 1 }, { id: 2 }];
+      const b = ["alice", "bob"];
+      expect(zip(a, b)).toEqual([
+        [{ id: 1 }, "alice"],
+        [{ id: 2 }, "bob"],
+      ]);
+    });
+
+    it("Ne mute pas les tableaux d'origine", () => {
+      const a = [1, 2, 3];
+      const b = ["a", "b", "c"];
+      const aCopy = [...a];
+      const bCopy = [...b];
+      zip(a, b);
+      expect(a).toEqual(aCopy);
+      expect(b).toEqual(bCopy);
+    });
+
+    it("Retourne un nouveau tableau distinct des tableaux d'origine", () => {
+      const a = [1, 2];
+      const b = ["a", "b"];
+      const result = zip(a, b);
+      expect(result).not.toBe(a);
+      expect(result).not.toBe(b);
+    });
+  });
+  // ── take ────────────────────────────────────────
+  describe("take", () => {
+    it("Retourne les n premiers éléments", () => {
+      expect(take([1, 2, 3, 4, 5], toUint(3))).toEqual([1, 2, 3]);
+    });
+
+    it("Retourne une copie complète si n >= longueur du tableau", () => {
+      expect(take([1, 2, 3], toUint(5))).toEqual([1, 2, 3]);
+    });
+
+    it("Retourne une copie complète si n === longueur du tableau", () => {
+      expect(take([1, 2, 3], toUint(3))).toEqual([1, 2, 3]);
+    });
+
+    it("Retourne un tableau vide si n === 0", () => {
+      expect(take([1, 2, 3], toUint(0))).toEqual([]);
+    });
+
+    it("Retourne un tableau vide si le tableau source est vide", () => {
+      expect(take([], toUint(3))).toEqual([]);
+    });
+
+    it("Fonctionne avec des tableaux de chaînes", () => {
+      expect(take(["a", "b", "c", "d"], toUint(2))).toEqual(["a", "b"]);
+    });
+
+    it("Ne mute pas le tableau d'origine", () => {
+      const arr = [1, 2, 3, 4];
+      const copy = [...arr];
+      take(arr, toUint(2));
+      expect(arr).toEqual(copy);
+    });
+
+    it("Retourne un nouveau tableau distinct du tableau d'origine", () => {
+      const arr = [1, 2, 3];
+      expect(take(arr, toUint(3))).not.toBe(arr);
+    });
+  });
+  // --- Drop -------------------------------------------
+  describe("drop", () => {
+    it("Retourne le tableau sans les n premiers éléments", () => {
+      expect(drop([1, 2, 3, 4, 5], toUint(2))).toEqual([3, 4, 5]);
+    });
+
+    it("Retourne un tableau vide si n >= longueur du tableau", () => {
+      expect(drop([1, 2, 3], toUint(5))).toEqual([]);
+    });
+
+    it("Retourne un tableau vide si n === longueur du tableau", () => {
+      expect(drop([1, 2, 3], toUint(3))).toEqual([]);
+    });
+
+    it("Retourne une copie complète si n === 0", () => {
+      expect(drop([1, 2, 3], toUint(0))).toEqual([1, 2, 3]);
+    });
+
+    it("Retourne un tableau vide si le tableau source est vide", () => {
+      expect(drop([], toUint(3))).toEqual([]);
+    });
+
+    it("Fonctionne avec des tableaux de chaînes", () => {
+      expect(drop(["a", "b", "c", "d"], toUint(2))).toEqual(["c", "d"]);
+    });
+
+    it("Ne mute pas le tableau d'origine", () => {
+      const arr = [1, 2, 3, 4];
+      const copy = [...arr];
+      drop(arr, toUint(2));
+      expect(arr).toEqual(copy);
+    });
+
+    it("Retourne un nouveau tableau distinct du tableau d'origine", () => {
+      const arr = [1, 2, 3];
+      expect(drop(arr, toUint(0))).not.toBe(arr);
+    });
+  });
+  // ── Shuffle ────────────────────────────────────────
+  describe("shuffle", () => {
+    afterEach(() => {
+      vi.restoreAllMocks();
+    });
+
+    it("Retourne un tableau contenant les mêmes éléments", () => {
+      const arr = [1, 2, 3, 4, 5];
+      expect(shuffle(arr).sort()).toEqual([...arr].sort());
+    });
+
+    it("Retourne un tableau de même longueur", () => {
+      const arr = [1, 2, 3, 4, 5];
+      expect(shuffle(arr)).toHaveLength(arr.length);
+    });
+
+    it("Retourne un tableau vide si le tableau source est vide", () => {
+      expect(shuffle([])).toEqual([]);
+    });
+
+    it("Retourne un tableau d'un seul élément inchangé", () => {
+      expect(shuffle([42])).toEqual([42]);
+    });
+
+    it("Ne mute pas le tableau d'origine", () => {
+      const arr = [1, 2, 3, 4, 5];
+      const copy = [...arr];
+      shuffle(arr);
+      expect(arr).toEqual(copy);
+    });
+
+    it("Retourne un nouveau tableau distinct du tableau d'origine", () => {
+      const arr = [1, 2, 3];
+      expect(shuffle(arr)).not.toBe(arr);
+    });
+
+    it("Applique correctement l'algorithme Fisher-Yates avec Math.random mocké", () => {
+      // Math.random retourne toujours 0 → j vaut toujours 0 à chaque tour
+      // Déroulé sur [1, 2, 3] :
+      //   i=2 : j=0 → échange index 2 et 0 → [3, 2, 1]
+      //   i=1 : j=0 → échange index 1 et 0 → [2, 3, 1]
+      vi.spyOn(Math, "random").mockReturnValue(0);
+      expect(shuffle([1, 2, 3])).toEqual([2, 3, 1]);
+    });
+
+    it("Ne permute pas quand Math.random retourne toujours la valeur maximale", () => {
+      // Math.random retourne 0.999... → j vaut toujours i → aucun échange réel
+      vi.spyOn(Math, "random").mockReturnValue(0.9999999999);
+      const arr = [1, 2, 3, 4];
+      expect(shuffle(arr)).toEqual([1, 2, 3, 4]);
+    });
+
+    it("Fonctionne avec des tableaux de chaînes", () => {
+      const arr = ["a", "b", "c"];
+      expect(shuffle(arr).sort()).toEqual([...arr].sort());
+    });
+
+    it("Fonctionne avec des tableaux d'objets", () => {
+      const obj1 = { id: 1 };
+      const obj2 = { id: 2 };
+      const obj3 = { id: 3 };
+      const arr = [obj1, obj2, obj3];
+      const result = shuffle(arr);
+      expect(result).toHaveLength(3);
+      expect(result).toContain(obj1);
+      expect(result).toContain(obj2);
+      expect(result).toContain(obj3);
+    });
+  });
+
+  //── minBy ────────────────────────────────────────
+  describe("minBy", () => {
+    it("Retourne l'élément avec la valeur extraite la plus petite", () => {
+      expect(minBy([{ n: 3 }, { n: 1 }, { n: 2 }], (x) => x.n)).toEqual({
+        n: 1,
+      });
+    });
+
+    it("Retourne null si le tableau est vide", () => {
+      expect(minBy([], (x) => x as number)).toBeNull();
+    });
+
+    it("Retourne l'unique élément si le tableau en contient un seul", () => {
+      expect(minBy([{ n: 5 }], (x) => x.n)).toEqual({ n: 5 });
+    });
+
+    it("Retourne le premier élément rencontré en cas d'égalité", () => {
+      const a = { n: 1, label: "premier" };
+      const b = { n: 1, label: "second" };
+      expect(minBy([a, b], (x) => x.n)).toBe(a);
+    });
+
+    it("Fonctionne avec des valeurs négatives", () => {
+      expect(minBy([{ n: -1 }, { n: -5 }, { n: -2 }], (x) => x.n)).toEqual({
+        n: -5,
+      });
+    });
+
+    it("Fonctionne avec une fonction d'extraction sur des nombres directs", () => {
+      expect(minBy([3, 1, 4, 1, 5], (x) => x)).toBe(1);
+    });
+
+    it("Ne mute pas le tableau d'origine", () => {
+      const arr = [{ n: 2 }, { n: 1 }];
+      const copy = [...arr];
+      minBy(arr, (x) => x.n);
+      expect(arr).toEqual(copy);
+    });
+  });
+  describe("maxBy", () => {
+    it("Retourne l'élément avec la valeur extraite la plus grande", () => {
+      expect(maxBy([{ n: 3 }, { n: 1 }, { n: 2 }], (x) => x.n)).toEqual({
+        n: 3,
+      });
+    });
+
+    it("Retourne null si le tableau est vide", () => {
+      expect(maxBy([], (x) => x as number)).toBeNull();
+    });
+
+    it("Retourne l'unique élément si le tableau en contient un seul", () => {
+      expect(maxBy([{ n: 5 }], (x) => x.n)).toEqual({ n: 5 });
+    });
+
+    it("Retourne le premier élément rencontré en cas d'égalité", () => {
+      const a = { n: 9, label: "premier" };
+      const b = { n: 9, label: "second" };
+      expect(maxBy([a, b], (x) => x.n)).toBe(a);
+    });
+
+    it("Fonctionne avec des valeurs négatives", () => {
+      expect(maxBy([{ n: -1 }, { n: -5 }, { n: -2 }], (x) => x.n)).toEqual({
+        n: -1,
+      });
+    });
+
+    it("Fonctionne avec une fonction d'extraction sur des nombres directs", () => {
+      expect(maxBy([3, 1, 4, 1, 5], (x) => x)).toBe(5);
+    });
+
+    it("Ne mute pas le tableau d'origine", () => {
+      const arr = [{ n: 2 }, { n: 1 }];
+      const copy = [...arr];
+      maxBy(arr, (x) => x.n);
+      expect(arr).toEqual(copy);
     });
   });
 });
