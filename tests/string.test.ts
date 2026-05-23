@@ -8,6 +8,8 @@ import {
   toPascalCase,
   isNullOrWhiteSpace,
   truncate,
+  CapitalizeLine,
+  Capitalize,
 } from "../lib/string";
 import { UI_TEN } from "../lib/constants";
 import { Uint } from "../lib/brandedproxy";
@@ -148,6 +150,46 @@ describe("string", () => {
     });
     it("ne tronque pas une chaîne exactement à la limite", () => {
       expect(truncate("Hello", Uint[5])).toBe("Hello");
+    });
+  });
+  describe("Capitalize (déprécié)", () => {
+    it("Délègue à capitalize et met la première lettre en majuscule", () => {
+      expect(Capitalize("hello")).toBe("Hello");
+    });
+
+    it("Fonctionne avec une chaîne déjà en majuscule", () => {
+      expect(Capitalize("Hello")).toBe("Hello");
+    });
+  });
+
+  describe("CapitalizeLine (déprécié)", () => {
+    it("Délègue à capitalizeLine et capitalise chaque mot", () => {
+      expect(CapitalizeLine("hello world")).toBe("Hello World");
+    });
+
+    it("Fonctionne avec un seul mot", () => {
+      expect(CapitalizeLine("bonjour")).toBe("Bonjour");
+    });
+  });
+  describe("truncate — branche edge <= 0", () => {
+    it("Tronque le suffixe lui-même si max est inférieur à sa longueur", () => {
+      // ellipsis = '...' (3 chars), max = 2 → edge = 2 - 3 = -1 <= 0
+      // retourne ellipsis.slice(0, 2) = '..'
+      expect(truncate("bonjour", 2 as any)).toBe("..");
+    });
+
+    it("Retourne le premier caractère du suffixe si max vaut 1", () => {
+      expect(truncate("bonjour", 1 as any)).toBe(".");
+    });
+
+    it("Retourne un suffixe vide si max vaut 0", () => {
+      expect(truncate("bonjour", 0 as any)).toBe("");
+    });
+
+    it("Fonctionne avec un suffixe personnalisé plus long que max", () => {
+      // ellipsis = ' [...]' (6 chars), max = 3 → edge = 3 - 6 = -3 <= 0
+      // retourne ' [...]'.slice(0, 3) = ' [.'
+      expect(truncate("bonjour le monde", 3 as any, " [...]")).toBe(" [.");
     });
   });
 });

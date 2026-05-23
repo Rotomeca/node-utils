@@ -1,9 +1,9 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, afterEach } from "vitest";
 import { Uint, Int, Float, Ufloat } from "../lib/brandedproxy";
 import { Random } from "../lib/random";
 import { AStartObject } from "../lib/StartObject";
 import { EMAIL_REGEX, UUID_REGEX, ALPHA_REGEX, HEXA_REGEX } from "../lib/regex";
-import { toUint, toInt } from "../lib/types";
+import { toUint, toInt, toSelector } from "../lib/types";
 
 // ── BrandedProxy ─────────────────────────────────────────────
 describe("BrandedProxy", () => {
@@ -334,6 +334,45 @@ describe("Regex", () => {
     it("Rejette les hex à 4 ou 5 caractères", () => {
       expect(HEXA_REGEX.test("#1234")).toBe(false);
       expect(HEXA_REGEX.test("#12345")).toBe(false);
+    });
+  });
+  describe("toSelector", () => {
+    afterEach(() => {
+      vi.unstubAllGlobals();
+    });
+
+    describe("Environnement Node (sans document)", () => {
+      it("Accepte un sélecteur contenant #", () => {
+        expect(() => toSelector("#mon-id")).not.toThrow();
+        expect(toSelector("#mon-id")).toBe("#mon-id");
+      });
+
+      it("Accepte un sélecteur contenant .", () => {
+        expect(() => toSelector(".ma-classe")).not.toThrow();
+        expect(toSelector(".ma-classe")).toBe(".ma-classe");
+      });
+
+      it("Rejette un sélecteur sans # ni .", () => {
+        expect(() => toSelector("div" as any)).toThrow();
+      });
+    });
+
+    describe("Environnement navigateur (avec document mocké)", () => {
+      it("Accepte un sélecteur valide via document.querySelector", () => {
+        vi.stubGlobal("document", {
+          querySelector: vi.fn(), // ne lève pas d'erreur
+        });
+        expect(() => toSelector("#id")).not.toThrow();
+      });
+
+      it("Rejette un sélecteur invalide quand document.querySelector lève", () => {
+        vi.stubGlobal("document", {
+          querySelector: vi.fn().mockImplementation(() => {
+            throw new DOMException("Invalid selector");
+          }),
+        });
+        expect(() => toSelector("##invalide" as any)).toThrow();
+      });
     });
   });
 });

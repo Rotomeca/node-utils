@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, afterEach } from "vitest";
 import {
   chunk,
   unique,
@@ -930,6 +930,71 @@ describe("array", () => {
       const copy = [...arr];
       maxBy(arr, (x) => x.n);
       expect(arr).toEqual(copy);
+    });
+  });
+  describe("flatten — fallback sans Array.flat", () => {
+    afterEach(() => {
+      // Restauration systématique pour ne pas polluer les autres tests
+      if (!(Array.prototype as any).flat) {
+        (Array.prototype as any).flat = Array.prototype.flat;
+      }
+    });
+
+    it("Produit le même résultat via le fallback manuel", () => {
+      const originalFlat = Array.prototype.flat;
+      delete (Array.prototype as any).flat;
+
+      try {
+        expect(flatten([[1, 2], [3, 4], [5]])).toEqual([1, 2, 3, 4, 5]);
+      } finally {
+        (Array.prototype as any).flat = originalFlat;
+      }
+    });
+
+    it("Retourne un tableau vide via le fallback si source est vide", () => {
+      const originalFlat = Array.prototype.flat;
+      delete (Array.prototype as any).flat;
+
+      try {
+        expect(flatten([])).toEqual([]);
+      } finally {
+        (Array.prototype as any).flat = originalFlat;
+      }
+    });
+
+    it("Conserve les sous-tableaux imbriqués au-delà du premier niveau via le fallback", () => {
+      const originalFlat = Array.prototype.flat;
+      delete (Array.prototype as any).flat;
+
+      try {
+        expect(flatten([[1, [2, 3]], [4]])).toEqual([1, [2, 3], 4]);
+      } finally {
+        (Array.prototype as any).flat = originalFlat;
+      }
+    });
+  });
+
+  describe("flattenDeep — fallback sans Array.flat", () => {
+    it("Aplatit récursivement via le fallback manuel", () => {
+      const originalFlat = Array.prototype.flat;
+      delete (Array.prototype as any).flat;
+
+      try {
+        expect(flattenDeep<number>([1, [2, [3, [4]]]])).toEqual([1, 2, 3, 4]);
+      } finally {
+        (Array.prototype as any).flat = originalFlat;
+      }
+    });
+
+    it("Retourne un tableau vide via le fallback si source est vide", () => {
+      const originalFlat = Array.prototype.flat;
+      delete (Array.prototype as any).flat;
+
+      try {
+        expect(flattenDeep<number>([])).toEqual([]);
+      } finally {
+        (Array.prototype as any).flat = originalFlat;
+      }
     });
   });
 });

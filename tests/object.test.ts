@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, afterEach } from "vitest";
 import {
   pick,
   omit,
@@ -11,6 +11,7 @@ import {
   filterKeys,
   filterValues,
   invert,
+  deepMerge,
 } from "../lib/object";
 import { isDefined } from "../lib/guard";
 
@@ -357,6 +358,134 @@ describe("object", () => {
     it("Retourne un objet distinct de l'objet source", () => {
       const obj = { a: "x" };
       expect(invert(obj)).not.toBe(obj);
+    });
+  });
+  describe("deepClone — fallback JSON", () => {
+    afterEach(() => {
+      vi.unstubAllGlobals();
+    });
+
+    it("Utilise le fallback JSON si structuredClone est absent", () => {
+      vi.stubGlobal("structuredClone", undefined);
+      const obj = { a: { b: 1 }, c: [1, 2] };
+      const clone = deepClone(obj);
+      expect(clone).toEqual(obj);
+      expect(clone).not.toBe(obj);
+      expect(clone.a).not.toBe(obj.a);
+    });
+
+    it("Appelle le logger lors du fallback JSON", () => {
+      vi.stubGlobal("structuredClone", undefined);
+      const logger = vi.fn();
+      deepClone({ a: 1 }, logger);
+      expect(logger).toHaveBeenCalledOnce();
+      expect(logger).toHaveBeenCalledWith(
+        expect.stringContaining("structuredClone"),
+      );
+    });
+  });
+  describe("unflattenObject — remplacement de valeur primitive par un objet", () => {
+    it("Remplace une valeur primitive par un objet intermédiaire si nécessaire", () => {
+      // 'a' est d'abord une feuille (42), puis 'a.b' force 'a' à devenir un objet
+      expect(unflattenObject({ a: 42, "a.b": 1 })).toEqual({ a: { b: 1 } });
+    });
+
+    it("Remplace un tableau par un objet intermédiaire si une clé enfant le requiert", () => {
+      expect(unflattenObject({ a: [1, 2], "a.b": 3 })).toEqual({ a: { b: 3 } });
+    });
+  });
+  describe("deepMerge", () => {
+    it("Fusionne les propriétés de premier niveau", () => {
+      expect(deepMerge({ a: 1, b: 2 }, { b: 99 })).toEqual({ a: 1, b: 99 });
+    });
+
+    it("Fusionne récursivement les objets plains imbriqués", () => {
+      expect(deepMerge({ a: 1, b: { c: 2, d: 3 } }, { b: { c: 99 } })).toEqual({
+        a: 1,
+        b: { c: 99, d: 3 },
+      });
+    });
+
+    it("Fusionne sur plusieurs niveaux de profondeur", () => {
+      expect(
+        deepMerge({ a: { b: { c: 1, d: 2 } } }, { a: { b: { c: 99 } } }),
+      ).toEqual({ a: { b: { c: 99, d: 2 } } });
+    });
+
+    it("Ajoute les propriétés de source absentes de target", () => {
+      expect(deepMerge({ a: 1 }, { b: 2 })).toEqual({ a: 1, b: 2 });
+    });
+
+    it("Conserve les propriétés de target absentes de source", () => {
+      expect(deepMerge({ a: 1, b: 2 }, { b: 99 })).toMatchObject({ a: 1 });
+    });
+
+    it("Écrase les tableaux sans les fusionner", () => {
+      expect(deepMerge({ a: [1, 2] }, { a: [3, 4, 5] })).toEqual({
+        a: [3, 4, 5],
+      });
+    });
+
+    it("Écrase les instances de Date sans les fusionner", () => {
+      const d = new Date("2024-01-01");
+      expect(deepMerge({ d: new Date("2020-01-01") }, { d })).toEqual({ d });
+    });
+
+    it("Écrase les instances de Map sans les fusionner", () => {
+      const m = new Map([["x", 1]]);
+      expect(deepMerge({ m: new Map() }, { m })).toEqual({ m });
+    });
+
+    it("Retourne une copie de target si source est vide", () => {
+      expect(deepMerge({ a: 1 }, {})).toEqual({ a: 1 });
+    });
+
+    it("Retourne un objet vide si target et source sont vides", () => {
+      expect(deepMerge({}, {})).toEqual({});
+    });
+
+    it("Ne mute pas target", () => {
+      const target = { a: 1, b: { c: 2 } };
+      deepMerge(target, { b: { c: 99 } });
+      expect(target).toEqual({ a: 1, b: { c: 2 } });
+    });
+
+    it("Ne mute pas source", () => {
+      const source = { b: { c: 99 } };
+      deepMerge({ a: 1, b: { c: 2 } }, source);
+      expect(source).toEqual({ b: { c: 99 } });
+    });
+
+    it("Retourne un objet distinct de target et de source", () => {
+      const target = { a: 1 };
+      const source = { a: 2 };
+      const result = deepMerge(target, source);
+      expect(result).not.toBe(target);
+      expect(result).not.toBe(source);
+    });
+
+    it("Ignore la clé __proto__", () => {
+      const malicious = JSON.parse('{"__proto__":{"polluted":true}}');
+      deepMerge({}, malicious);
+      expect((Object.prototype as any).polluted).toBeUndefined();
+    });
+
+    it("Ignore la clé constructor", () => {
+      const malicious = JSON.parse('{"constructor":{"polluted":true}}');
+      deepMerge({}, malicious);
+      expect((Object.prototype as any).polluted).toBeUndefined();
+    });
+
+    it("Ignore la clé prototype", () => {
+      const malicious = JSON.parse('{"prototype":{"polluted":true}}');
+      deepMerge({}, malicious);
+      expect((Object.prototype as any).polluted).toBeUndefined();
+    });
+
+    it("Infère correctement le type T & U", () => {
+      const result = deepMerge({ a: 1 }, { b: "hello" });
+      expect(result.a).toBe(1);
+      expect(result.b).toBe("hello");
     });
   });
 });
