@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, afterEach, vi } from "vitest";
 import {
   capitalize,
   capitalizeLine,
@@ -10,6 +10,10 @@ import {
   truncate,
   CapitalizeLine,
   Capitalize,
+  template,
+  countOccurrences,
+  reverse,
+  words,
 } from "../lib/string";
 import { UI_TEN } from "../lib/constants";
 import { Uint } from "../lib/brandedproxy";
@@ -190,6 +194,241 @@ describe("string", () => {
       // ellipsis = ' [...]' (6 chars), max = 3 → edge = 3 - 6 = -3 <= 0
       // retourne ' [...]'.slice(0, 3) = ' [.'
       expect(truncate("bonjour le monde", 3 as any, " [...]")).toBe(" [.");
+    });
+  });
+  describe("template", () => {
+    it("Remplace un marqueur simple par sa valeur", () => {
+      expect(template("Bonjour {prenom} !", { prenom: "Alice" })).toBe(
+        "Bonjour Alice !",
+      );
+    });
+
+    it("Remplace plusieurs marqueurs distincts", () => {
+      expect(template("{a} + {b} = {c}", { a: 1, b: 2, c: 3 })).toBe(
+        "1 + 2 = 3",
+      );
+    });
+
+    it("Remplace un marqueur apparaissant plusieurs fois", () => {
+      expect(template("{x} et {x}", { x: "hop" })).toBe("hop et hop");
+    });
+
+    it("Remplace une valeur numérique par sa représentation en chaîne", () => {
+      expect(template("Valeur : {n}", { n: 42 })).toBe("Valeur : 42");
+    });
+
+    it("Remplace une valeur numérique égale à zéro correctement", () => {
+      expect(template("Score : {n}", { n: 0 })).toBe("Score : 0");
+    });
+
+    it("Remplace par une chaîne vide si la clé est absente du dictionnaire", () => {
+      expect(template("Valeur : {x}", {})).toBe("Valeur : ");
+    });
+
+    it("Retourne la chaîne intacte si elle ne contient aucun marqueur", () => {
+      expect(template("Pas de marqueur", { foo: "bar" })).toBe(
+        "Pas de marqueur",
+      );
+    });
+
+    it("Retourne une chaîne vide si str est vide", () => {
+      expect(template("", { foo: "bar" })).toBe("");
+    });
+
+    it("Ne mute pas le dictionnaire vars passé en argument", () => {
+      const vars = { nom: "Bob" };
+      const original = { ...vars };
+      template("Bonjour {nom}", vars);
+      expect(vars).toEqual(original);
+    });
+
+    it("Ignore les accolades non fermées ou malformées", () => {
+      expect(template("{ non fermé", { x: "1" })).toBe("{ non fermé");
+      expect(template("{} vide", { x: "1" })).toBe("{} vide");
+    });
+  });
+  describe("countOccurrences", () => {
+    it("Compte une occurrence unique", () => {
+      expect(countOccurrences("bonjour", "jour")).toBe(1);
+    });
+
+    it("Compte plusieurs occurrences non chevauchantes", () => {
+      expect(countOccurrences("abcabc", "a")).toBe(2);
+    });
+
+    it("Retourne 0 si la sous-chaîne est absente", () => {
+      expect(countOccurrences("abc", "x")).toBe(0);
+    });
+
+    it("Retourne 0 si str est vide", () => {
+      expect(countOccurrences("", "a")).toBe(0);
+    });
+
+    it("Retourne 0 si sub est une chaîne vide", () => {
+      expect(countOccurrences("abc", "")).toBe(0);
+    });
+
+    it("Retourne 0 si str et sub sont tous les deux vides", () => {
+      expect(countOccurrences("", "")).toBe(0);
+    });
+
+    it("Compte les occurrences non chevauchantes (aaa / aa → 1)", () => {
+      expect(countOccurrences("aaa", "aa")).toBe(1);
+    });
+
+    it("Compte correctement une sous-chaîne de plusieurs caractères", () => {
+      expect(countOccurrences("abababab", "ab")).toBe(4);
+    });
+
+    it("Est sensible à la casse", () => {
+      expect(countOccurrences("AaAaAa", "a")).toBe(3);
+    });
+
+    it("Retourne un uint (nombre entier non signé)", () => {
+      const result = countOccurrences("test", "t");
+      expect(Number.isInteger(result)).toBe(true);
+      expect(result).toBeGreaterThanOrEqual(0);
+    });
+
+    it("Ne mute pas la chaîne source", () => {
+      const original = "abcabc";
+      countOccurrences(original, "a");
+      expect(original).toBe("abcabc");
+    });
+  });
+  describe("reverse", () => {
+    it("Inverse une chaîne simple", () => {
+      expect(reverse("bonjour")).toBe("ruojnob");
+    });
+
+    it("Inverse une chaîne avec espaces", () => {
+      expect(reverse("hello world")).toBe("dlrow olleh");
+    });
+
+    it("Retourne une chaîne vide si str est vide", () => {
+      expect(reverse("")).toBe("");
+    });
+
+    it("Retourne le même caractère pour une chaîne de longueur 1", () => {
+      expect(reverse("a")).toBe("a");
+    });
+
+    it("Gère correctement les emojis simples (surrogate pairs)", () => {
+      expect(reverse("😀😂")).toBe("😂😀");
+    });
+
+    it("Gère correctement les drapeaux (combining chars)", () => {
+      expect(reverse("🇫🇷🇩🇪")).toBe("🇩🇪🇫🇷");
+    });
+
+    it("Gère correctement les emojis composés (ZWJ sequences)", () => {
+      expect(reverse("👨‍👩‍👧👩‍💻")).toBe("👩‍💻👨‍👩‍👧");
+    });
+
+    it("Fonctionne sans passer de locale (paramètre optionnel)", () => {
+      expect(reverse("abc")).toBe("cba");
+    });
+
+    it("Accepte une locale explicite", () => {
+      expect(reverse("abc", { locales: "en-US" })).toBe("cba");
+    });
+
+    it("Ne mute pas la chaîne source", () => {
+      const original = "bonjour";
+      reverse(original);
+      expect(original).toBe("bonjour");
+    });
+    it("Inverse une chaîne en japonais", () => {
+      expect(reverse("日本語")).toBe("語本日");
+    });
+
+    it("Inverse une chaîne avec des caractères spéciaux", () => {
+      expect(reverse("}§∟")).toBe("∟§}");
+    });
+
+    it("Inverse une chaîne mixte japonais et caractères spéciaux", () => {
+      expect(reverse("日}§∟語")).toBe("語∟§}日");
+    });
+
+    describe("fallback — Intl.Segmenter indisponible", () => {
+      afterEach(() => {
+        vi.restoreAllMocks();
+      });
+
+      it("Utilise le fallback [...str] si Intl.Segmenter est absent", () => {
+        vi.spyOn(Intl, "Segmenter", "get").mockReturnValue(undefined as any);
+        expect(reverse("bonjour")).toBe("ruojnob");
+      });
+
+      it("Gère les surrogate pairs dans le fallback", () => {
+        vi.spyOn(Intl, "Segmenter", "get").mockReturnValue(undefined as any);
+        expect(reverse("😀😂")).toBe("😂😀");
+      });
+    });
+  });
+  describe("words", () => {
+    it("Découpe une chaîne camelCase", () => {
+      expect(words("helloWorld")).toEqual(["hello", "world"]);
+    });
+
+    it("Découpe une chaîne PascalCase", () => {
+      expect(words("BonjourLeMonde")).toEqual(["bonjour", "le", "monde"]);
+    });
+
+    it("Découpe une chaîne kebab-case", () => {
+      expect(words("foo-bar-baz")).toEqual(["foo", "bar", "baz"]);
+    });
+
+    it("Découpe une chaîne snake_case", () => {
+      expect(words("foo_bar_baz")).toEqual(["foo", "bar", "baz"]);
+    });
+
+    it("Découpe une chaîne avec espaces", () => {
+      expect(words("bonjour le monde")).toEqual(["bonjour", "le", "monde"]);
+    });
+
+    it("Gère les underscores multiples ou en bordure", () => {
+      expect(words("__foo__bar__")).toEqual(["foo", "bar"]);
+    });
+
+    it("Gère les tirets multiples ou en bordure", () => {
+      expect(words("--foo--bar--")).toEqual(["foo", "bar"]);
+    });
+
+    it("Gère les espaces en début et fin de chaîne", () => {
+      expect(words("  hello world  ")).toEqual(["hello", "world"]);
+    });
+
+    it("Retourne un tableau vide si str est vide", () => {
+      expect(words("")).toEqual([]);
+    });
+
+    it("Retourne un tableau vide si str ne contient que des espaces", () => {
+      expect(words("   ")).toEqual([]);
+    });
+
+    it("Retourne un tableau à un seul élément pour un mot simple", () => {
+      expect(words("bonjour")).toEqual(["bonjour"]);
+    });
+
+    it("Gère un mélange de séparateurs", () => {
+      expect(words("foo_bar-baz HelloWorld")).toEqual([
+        "foo",
+        "bar",
+        "baz",
+        "hello",
+        "world",
+      ]);
+    });
+
+    it("Retourne les mots en minuscules", () => {
+      expect(words("FOO_BAR")).toEqual(["foo", "bar"]);
+    });
+
+    it("Ne mute pas la chaîne source", () => {
+      const original = "helloWorld";
+      words(original);
+      expect(original).toBe("helloWorld");
     });
   });
 });
