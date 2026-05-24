@@ -1,0 +1,39 @@
+{
+  "entryPoints": [
+    "lib/array.ts",
+    "lib/async.ts",
+    "lib/brandedproxy.ts",
+    "lib/constants.ts",
+    "lib/function.ts",
+    "lib/guard.ts",
+    "lib/number.ts",
+    "lib/object.ts",
+    "lib/pipe.ts",
+    "lib/random.ts",
+    "lib/regex.ts",
+    "lib/StartObject.ts",
+    "lib/string.ts",
+    "lib/types.ts",
+    "lib/validator.ts"
+  ],
+  "out": "docs",
+  "tsconfig": "tsconfig.json",
+  "readme": "README.md",
+  "name": "@rotomeca/utils",
+  "includeVersion": true,
+  "excludePrivate": true,
+  "groupOrder": [
+    "Array",
+    "Object",
+    "String",
+    "Async",
+    "Function",
+    "Number",
+    "Guard",
+    "Validator",
+    "Types",
+    "Constants",
+    "Classes",
+    "*"
+  ]
+}
