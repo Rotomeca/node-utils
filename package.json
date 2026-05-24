@@ -14,7 +14,9 @@
     }
   },
   "files": [
-    "dist"
+    "dist",
+    "README.md",
+    "DECISION.md"
   ],
   "scripts": {
     "prebuild": "rimraf dist",
