@@ -4,6 +4,7 @@
 [![CI](https://github.com/Rotomeca/node-utils/actions/workflows/ci.yml/badge.svg)](https://github.com/Rotomeca/node-utils/actions)
 [![License: ISC](https://img.shields.io/badge/License-ISC-blue.svg)](https://opensource.org/licenses/ISC)
 [![Node.js >= 18](https://img.shields.io/badge/node-%3E%3D18-brightgreen)](https://nodejs.org)
+[![Docs](https://img.shields.io/badge/docs-github.io-blue)](https://rotomeca.github.io/node-utils)
 
 Bibliothèque TypeScript utilitaire pensée pour un usage professionnel et en entreprise. Fournit un ensemble cohérent de fonctions pures, types brandés et helpers couvrant les besoins quotidiens des projets Node.js et navigateur.
 
