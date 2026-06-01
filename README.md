@@ -1,3 +1,7 @@
+<div align="center">
+
+<img height="90" alt="rotomeca-lib-ts" src="https://raw.githubusercontent.com/gist/Rotomeca/45e5f96fcd72ae3413804972f3be9852/raw/15828f5df4f39e6be5b53d6b81e4d98e893d7f86/rotomeca-lib.ts.svg" />
+
 # @rotomeca/utils
 
 [![npm version](https://img.shields.io/npm/v/@rotomeca/utils)](https://www.npmjs.com/package/@rotomeca/utils)
@@ -5,6 +9,8 @@
 [![License: ISC](https://img.shields.io/badge/License-ISC-blue.svg)](https://opensource.org/licenses/ISC)
 [![Node.js >= 18](https://img.shields.io/badge/node-%3E%3D18-brightgreen)](https://nodejs.org)
 [![Docs](https://img.shields.io/badge/docs-github.io-blue)](https://rotomeca.github.io/node-utils)
+
+</div>
 
 Bibliothèque TypeScript utilitaire pensée pour un usage professionnel et en entreprise. Fournit un ensemble cohérent de fonctions pures, types brandés et helpers couvrant les besoins quotidiens des projets Node.js et navigateur.
 
